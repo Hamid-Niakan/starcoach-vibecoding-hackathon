@@ -5,7 +5,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.js
 COPY packages ./packages
 COPY apps/api ./apps/api
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @hackathon/contracts build && pnpm --filter @hackathon/api build
+RUN pnpm turbo build --filter=@hackathon/api
 
 FROM node:24-bookworm-slim AS runner
 ENV NODE_ENV=production API_PORT=3000 DRIZZLE_MIGRATIONS_DIR=/app/apps/api/drizzle

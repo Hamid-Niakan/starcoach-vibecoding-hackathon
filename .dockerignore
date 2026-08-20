@@ -9,6 +9,8 @@ node_modules
 **/out
 **/dist
 .turbo
+**/.turbo
+**/*.tsbuildinfo
 coverage
 .env*
 data/zarinpal/*
