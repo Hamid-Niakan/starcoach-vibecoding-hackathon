@@ -19,7 +19,7 @@ Two independently deployable products share one NestJS API and a reusable stream
 | API compatibility health | <http://localhost:3000/api/health>       |
 | API liveness             | <http://localhost:3000/api/health/live>  |
 | API readiness            | <http://localhost:3000/api/health/ready> |
-| PostgreSQL               | `localhost:5432`                         |
+| PostgreSQL               | `localhost:5432` by default              |
 
 ## Prerequisites
 
@@ -260,7 +260,8 @@ Reapply only documented workspace integration changes, run all root checks, and 
 
 - **Chat returns 503:** confirm `docker compose ps postgres`, export `.env`, and restart the API. Check `/api/health/ready` for the failing storage dependency.
 - **`DATABASE_URL is required`:** run `set -a; source .env; set +a` in the terminal executing API or migration commands.
-- **Port already in use:** ports 3000, 3001, 3002, and 5432 must be available, or the relevant scripts/Compose mappings must be changed consistently.
+- **PostgreSQL port 5432 is already in use:** keep the existing database and start Compose with `sudo env POSTGRES_HOST_PORT=5433 docker compose up --build`. For native API development, also set `DATABASE_URL=postgres://hackathon:hackathon@localhost:5433/hackathon`.
+- **Another port is already in use:** ports 3000, 3001, and 3002 must be available, or the relevant Compose mapping must be changed.
 - **Liara model fetch is unavailable:** the build uses the committed model snapshot and continues without network access.
 - **Search is unavailable:** Meilisearch is optional for this baseline; missing search credentials must not block documentation rendering.
 - **DuckDB native module fails to load:** use a supported x64/arm64 Linux, macOS, or Windows environment, reinstall dependencies for the current platform, or run the API container.
