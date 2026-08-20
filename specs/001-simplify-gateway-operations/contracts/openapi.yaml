@@ -1,0 +1,987 @@
+openapi: 3.1.0
+info:
+  title: AI Gateway
+  version: 1.0.0
+  description: >-
+    Anonymous OpenAI-compatible chat gateway with one operator-configured public
+    model. The gateway exposes one static compatibility entry at /v1/models but
+    no provider selection, dynamic model discovery, management, analytics, or
+    non-chat AI APIs. This file is the frozen v1 compatibility baseline: fields
+    not declared here are intentionally rejected even if a newer OpenAI API or
+    the upstream provider accepts them.
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+tags:
+  - name: chat
+  - name: models
+  - name: health
+paths:
+  /v1/chat/completions:
+    post:
+      operationId: createChatCompletion
+      tags: [chat]
+      summary: Create a chat completion
+      description: >-
+        Accepts no gateway credential. The model must exactly match the single
+        configured public model name. Set stream=true for server-sent events;
+        clients should consume the raw stream because Swagger may not render it
+        incrementally. The gateway does not execute tools.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+            examples:
+              basic:
+                summary: Non-streaming chat
+                value:
+                  model: configured-public-model
+                  messages:
+                    - role: user
+                      content: Hello
+              streaming:
+                summary: Streaming chat with final usage requested
+                value:
+                  model: configured-public-model
+                  messages:
+                    - role: user
+                      content: Hello
+                  stream: true
+                  stream_options:
+                    include_usage: true
+      responses:
+        '200':
+          description: Compatible JSON completion or SSE stream
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+            X-Accel-Buffering:
+              description: Present with value no for streaming responses so compatible reverse proxies do not buffer SSE
+              schema:
+                type: string
+                const: 'no'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResponse'
+            text/event-stream:
+              schema:
+                type: string
+                description: >-
+                  Ordered data events containing ChatCompletionChunk JSON,
+                  followed exactly once by data: [DONE].
+              x-sse-event-schema:
+                $ref: '#/components/schemas/ChatCompletionChunk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/LimitExceeded'
+        '502':
+          $ref: '#/components/responses/UpstreamFailure'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '504':
+          $ref: '#/components/responses/Timeout'
+        '500':
+          $ref: '#/components/responses/InternalFailure'
+      security: []
+  /v1/models:
+    get:
+      operationId: listModels
+      tags: [models]
+      summary: List the single configured public model
+      description: >-
+        Returns one immutable compatibility entry derived from startup
+        configuration. This operation performs no upstream discovery and never
+        exposes the provider address or protected upstream model identifier.
+      responses:
+        '200':
+          description: OpenAI-compatible list containing exactly one public model
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelList'
+              example:
+                object: list
+                data:
+                  - id: configured-public-model
+                    object: model
+                    created: 0
+                    owned_by: ai-gateway
+      security: []
+  /health/liveness:
+    get:
+      operationId: getLiveness
+      tags: [health]
+      summary: Check whether the process is alive
+      responses:
+        '200':
+          description: Process is alive
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Liveness'
+      security: []
+  /health/readiness:
+    get:
+      operationId: getReadiness
+      tags: [health]
+      summary: Check whether correct admission decisions can be made
+      responses:
+        '200':
+          description: Gateway is ready
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+              example:
+                status: ready
+        '503':
+          description: Gateway is not ready; dependency details are intentionally omitted
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+              example:
+                status: not_ready
+      security: []
+components:
+  headers:
+    RequestId:
+      description: Gateway-generated UUID used to correlate the caller response with one structured outcome event
+      schema:
+        type: string
+        format: uuid
+    NoStore:
+      description: Prevent shared or browser caches from retaining responses; streams also disable intermediary buffering
+      schema:
+        type: string
+        enum: [no-store, 'no-cache, no-store']
+  responses:
+    BadRequest:
+      description: Invalid JSON, unsupported field, invalid model, or other request validation failure
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+        Cache-Control:
+          $ref: '#/components/headers/NoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    PayloadTooLarge:
+      description: Request exceeded a documented size or count limit
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+        Cache-Control:
+          $ref: '#/components/headers/NoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnsupportedMediaType:
+      description: Content-Type must be application/json
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+        Cache-Control:
+          $ref: '#/components/headers/NoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    LimitExceeded:
+      description: Local rate/quota denial or a sanitized provider rate-limit response
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+        Retry-After:
+          description: Whole seconds until retry may succeed
+          schema:
+            type: integer
+            minimum: 0
+        Cache-Control:
+          $ref: '#/components/headers/NoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UpstreamFailure:
+      description: Provider returned an unusable response or failed before a compatible response could be returned
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+        Cache-Control:
+          $ref: '#/components/headers/NoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unavailable:
+      description: Correct enforcement is unavailable; no upstream request was made
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+        Retry-After:
+          description: Conservative retry delay in seconds
+          schema:
+            type: integer
+            minimum: 0
+        Cache-Control:
+          $ref: '#/components/headers/NoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Timeout:
+      description: Configured upstream or total request lifetime expired
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+        Cache-Control:
+          $ref: '#/components/headers/NoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalFailure:
+      description: Unexpected sanitized gateway failure
+      headers:
+        X-Request-ID:
+          $ref: '#/components/headers/RequestId'
+        Cache-Control:
+          $ref: '#/components/headers/NoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ModelList:
+      type: object
+      additionalProperties: false
+      required: [object, data]
+      properties:
+        object:
+          type: string
+          const: list
+        data:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/Model'
+    Model:
+      type: object
+      additionalProperties: false
+      required: [id, object, created, owned_by]
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Exact configured public model alias accepted by chat
+        object:
+          type: string
+          const: model
+        created:
+          type: integer
+          const: 0
+          description: Deterministic compatibility value; not a provider timestamp
+        owned_by:
+          type: string
+          const: ai-gateway
+    ChatCompletionRequest:
+      type: object
+      additionalProperties: false
+      required: [model, messages]
+      allOf:
+        - not:
+            required: [max_tokens, max_completion_tokens]
+        - if:
+            required: [stream_options]
+            properties:
+              stream_options:
+                not:
+                  type: 'null'
+          then:
+            required: [stream]
+            properties:
+              stream:
+                const: true
+        - if:
+            required: [top_logprobs]
+            properties:
+              top_logprobs:
+                not:
+                  type: 'null'
+          then:
+            required: [logprobs]
+            properties:
+              logprobs:
+                const: true
+      properties:
+        model:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Must exactly match the operator-configured public model name
+        messages:
+          type: array
+          minItems: 1
+          maxItems: 128
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+        frequency_penalty:
+          type: [number, 'null']
+          minimum: -2
+          maximum: 2
+        presence_penalty:
+          type: [number, 'null']
+          minimum: -2
+          maximum: 2
+        logit_bias:
+          type: [object, 'null']
+          additionalProperties:
+            type: number
+        logprobs:
+          type: [boolean, 'null']
+        top_logprobs:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 20
+        max_tokens:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 2147483647
+          description: Legacy output ceiling; cannot be combined with max_completion_tokens
+        max_completion_tokens:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 2147483647
+          description: Output ceiling; operator cap still applies
+        n:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 8
+        response_format:
+          anyOf:
+            - $ref: '#/components/schemas/ResponseFormat'
+            - type: 'null'
+        seed:
+          type: [integer, 'null']
+        service_tier:
+          type: [string, 'null']
+          maxLength: 64
+        stop:
+          oneOf:
+            - type: string
+              maxLength: 1024
+            - type: array
+              maxItems: 4
+              items:
+                type: string
+                maxLength: 1024
+            - type: 'null'
+        stream:
+          type: [boolean, 'null']
+          default: false
+        stream_options:
+          anyOf:
+            - $ref: '#/components/schemas/StreamOptions'
+            - type: 'null'
+        temperature:
+          type: [number, 'null']
+          minimum: 0
+          maximum: 2
+        top_p:
+          type: [number, 'null']
+          minimum: 0
+          maximum: 1
+        tools:
+          type: [array, 'null']
+          maxItems: 32
+          items:
+            $ref: '#/components/schemas/ToolDefinition'
+        functions:
+          type: [array, 'null']
+          maxItems: 32
+          description: Legacy function-definition form retained by the recorded compatibility baseline
+          items:
+            $ref: '#/components/schemas/LegacyFunctionDefinition'
+        tool_choice:
+          oneOf:
+            - type: string
+              enum: [none, auto, required]
+            - $ref: '#/components/schemas/NamedToolChoice'
+            - type: 'null'
+        parallel_tool_calls:
+          type: [boolean, 'null']
+        function_call:
+          oneOf:
+            - type: string
+              enum: [none, auto]
+            - type: object
+              additionalProperties: false
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 64
+            - type: 'null'
+        user:
+          type: [string, 'null']
+          maxLength: 256
+          description: Passed as payload only and never used as enforcement identity
+    ChatMessage:
+      oneOf:
+        - $ref: '#/components/schemas/DeveloperMessage'
+        - $ref: '#/components/schemas/SystemMessage'
+        - $ref: '#/components/schemas/UserMessage'
+        - $ref: '#/components/schemas/AssistantMessage'
+        - $ref: '#/components/schemas/ToolMessage'
+        - $ref: '#/components/schemas/FunctionMessage'
+      discriminator:
+        propertyName: role
+        mapping:
+          developer: '#/components/schemas/DeveloperMessage'
+          system: '#/components/schemas/SystemMessage'
+          user: '#/components/schemas/UserMessage'
+          assistant: '#/components/schemas/AssistantMessage'
+          tool: '#/components/schemas/ToolMessage'
+          function: '#/components/schemas/FunctionMessage'
+    DeveloperMessage:
+      type: object
+      additionalProperties: false
+      required: [role, content]
+      properties:
+        role:
+          const: developer
+        content:
+          $ref: '#/components/schemas/TextMessageContent'
+        name:
+          type: [string, 'null']
+          maxLength: 64
+    SystemMessage:
+      type: object
+      additionalProperties: false
+      required: [role, content]
+      properties:
+        role:
+          const: system
+        content:
+          $ref: '#/components/schemas/TextMessageContent'
+        name:
+          type: [string, 'null']
+          maxLength: 64
+    UserMessage:
+      type: object
+      additionalProperties: false
+      required: [role, content]
+      properties:
+        role:
+          const: user
+        content:
+          oneOf:
+            - type: string
+            - type: array
+              minItems: 1
+              maxItems: 128
+              items:
+                $ref: '#/components/schemas/UserContentPart'
+        name:
+          type: [string, 'null']
+          maxLength: 64
+    AssistantMessage:
+      type: object
+      additionalProperties: false
+      required: [role]
+      properties:
+        role:
+          const: assistant
+        content:
+          oneOf:
+            - type: string
+            - type: 'null'
+        name:
+          type: [string, 'null']
+          maxLength: 64
+        refusal:
+          type: [string, 'null']
+        tool_calls:
+          type: [array, 'null']
+          maxItems: 32
+          items:
+            $ref: '#/components/schemas/ToolCall'
+        function_call:
+          anyOf:
+            - $ref: '#/components/schemas/FunctionCall'
+            - type: 'null'
+      anyOf:
+        - required: [content]
+        - required: [tool_calls]
+        - required: [function_call]
+    ToolMessage:
+      type: object
+      additionalProperties: false
+      required: [role, content, tool_call_id]
+      properties:
+        role:
+          const: tool
+        content:
+          type: string
+        tool_call_id:
+          type: string
+          minLength: 1
+          maxLength: 256
+    FunctionMessage:
+      type: object
+      additionalProperties: false
+      required: [role, content, name]
+      properties:
+        role:
+          const: function
+        content:
+          type: [string, 'null']
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+    TextMessageContent:
+      oneOf:
+        - type: string
+        - type: array
+          minItems: 1
+          maxItems: 128
+          items:
+            $ref: '#/components/schemas/TextPart'
+    ContentPart:
+      oneOf:
+        - $ref: '#/components/schemas/TextPart'
+        - $ref: '#/components/schemas/ImagePart'
+        - $ref: '#/components/schemas/InputAudioPart'
+        - $ref: '#/components/schemas/FilePart'
+    UserContentPart:
+      oneOf:
+        - $ref: '#/components/schemas/TextPart'
+        - $ref: '#/components/schemas/ImagePart'
+        - $ref: '#/components/schemas/InputAudioPart'
+        - $ref: '#/components/schemas/FilePart'
+    TextPart:
+      type: object
+      additionalProperties: false
+      required: [type, text]
+      properties:
+        type:
+          const: text
+        text:
+          type: string
+    ImagePart:
+      type: object
+      additionalProperties: false
+      required: [type, image_url]
+      properties:
+        type:
+          const: image_url
+        image_url:
+          oneOf:
+            - type: string
+              pattern: '^data:image/[A-Za-z0-9.+-]+;base64,[A-Za-z0-9+/]+={0,2}$'
+              description: Inline base64 data URI; remote URLs are rejected
+            - type: object
+              additionalProperties: false
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  pattern: '^data:image/[A-Za-z0-9.+-]+;base64,[A-Za-z0-9+/]+={0,2}$'
+                  description: Inline base64 data URI; remote URLs are rejected
+                detail:
+                  type: string
+                  enum: [auto, low, high]
+    InputAudioPart:
+      type: object
+      additionalProperties: false
+      required: [type, input_audio]
+      properties:
+        type:
+          const: input_audio
+        input_audio:
+          type: object
+          additionalProperties: false
+          required: [data, format]
+          properties:
+            data:
+              type: string
+              pattern: '^[A-Za-z0-9+/]+={0,2}$'
+            format:
+              type: string
+              enum: [wav, mp3]
+    FilePart:
+      type: object
+      additionalProperties: false
+      required: [type, file]
+      properties:
+        type:
+          const: file
+        file:
+          type: object
+          additionalProperties: false
+          required: [file_data]
+          properties:
+            file_data:
+              type: string
+              description: Inline base64 data only; provider file identifiers are rejected
+              pattern: '^(data:[^;,]+;base64,)?[A-Za-z0-9+/]+={0,2}$'
+            filename:
+              type: string
+              maxLength: 255
+    ToolDefinition:
+      type: object
+      additionalProperties: false
+      required: [type, function]
+      properties:
+        type:
+          const: function
+        function:
+          type: object
+          additionalProperties: false
+          required: [name]
+          properties:
+            name:
+              type: string
+              minLength: 1
+              maxLength: 64
+            description:
+              type: string
+              maxLength: 4096
+            parameters:
+              type: object
+              additionalProperties: true
+            strict:
+              type: boolean
+    LegacyFunctionDefinition:
+      type: object
+      additionalProperties: false
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+        description:
+          type: string
+          maxLength: 4096
+        parameters:
+          type: object
+          additionalProperties: true
+    NamedToolChoice:
+      type: object
+      additionalProperties: false
+      required: [type, function]
+      properties:
+        type:
+          const: function
+        function:
+          type: object
+          additionalProperties: false
+          required: [name]
+          properties:
+            name:
+              type: string
+              maxLength: 64
+    ToolCall:
+      type: object
+      additionalProperties: false
+      required: [id, type, function]
+      properties:
+        id:
+          type: string
+        type:
+          const: function
+        function:
+          $ref: '#/components/schemas/FunctionCall'
+    FunctionCall:
+      type: object
+      additionalProperties: false
+      required: [name, arguments]
+      properties:
+        name:
+          type: string
+        arguments:
+          type: string
+    ResponseFormat:
+      oneOf:
+        - $ref: '#/components/schemas/TextResponseFormat'
+        - $ref: '#/components/schemas/JSONObjectResponseFormat'
+        - $ref: '#/components/schemas/JSONSchemaResponseFormat'
+      discriminator:
+        propertyName: type
+    TextResponseFormat:
+      type: object
+      additionalProperties: false
+      required: [type]
+      properties:
+        type:
+          const: text
+    JSONObjectResponseFormat:
+      type: object
+      additionalProperties: false
+      required: [type]
+      properties:
+        type:
+          const: json_object
+    JSONSchemaResponseFormat:
+      type: object
+      additionalProperties: false
+      required: [type, json_schema]
+      properties:
+        type:
+          const: json_schema
+        json_schema:
+          type: object
+          additionalProperties: false
+          required: [name, schema]
+          properties:
+            name:
+              type: string
+              minLength: 1
+              maxLength: 64
+            description:
+              type: string
+              maxLength: 4096
+            schema:
+              type: object
+              additionalProperties: true
+            strict:
+              type: boolean
+    StreamOptions:
+      type: object
+      additionalProperties: false
+      properties:
+        include_usage:
+          type: boolean
+    ChatCompletionResponse:
+      type: object
+      required: [id, object, created, model, choices]
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          const: chat.completion
+        created:
+          type: integer
+        model:
+          type: string
+          description: Public model name, never the protected upstream model identifier
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatCompletionChoice'
+        usage:
+          anyOf:
+            - $ref: '#/components/schemas/Usage'
+            - type: 'null'
+        service_tier:
+          type: [string, 'null']
+        system_fingerprint:
+          type: [string, 'null']
+      additionalProperties: false
+    ChatCompletionChoice:
+      type: object
+      additionalProperties: false
+      required: [index, message, finish_reason]
+      properties:
+        index:
+          type: integer
+          minimum: 0
+        message:
+          $ref: '#/components/schemas/AssistantResponseMessage'
+        finish_reason:
+          type: [string, 'null']
+          enum: [stop, length, tool_calls, content_filter, function_call, null]
+        logprobs:
+          type: [object, 'null']
+          additionalProperties: true
+    AssistantResponseMessage:
+      type: object
+      additionalProperties: false
+      required: [role, content]
+      properties:
+        role:
+          const: assistant
+        content:
+          type: [string, 'null']
+        refusal:
+          type: [string, 'null']
+        tool_calls:
+          type: [array, 'null']
+          items:
+            $ref: '#/components/schemas/ToolCall'
+        function_call:
+          anyOf:
+            - $ref: '#/components/schemas/FunctionCall'
+            - type: 'null'
+    ChatCompletionChunk:
+      type: object
+      additionalProperties: false
+      required: [id, object, created, model, choices]
+      properties:
+        id:
+          type: string
+        object:
+          const: chat.completion.chunk
+        created:
+          type: integer
+        model:
+          type: string
+          description: Public model name, never the protected upstream identifier
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatCompletionChunkChoice'
+        usage:
+          anyOf:
+            - $ref: '#/components/schemas/Usage'
+            - type: 'null'
+        service_tier:
+          type: [string, 'null']
+        system_fingerprint:
+          type: [string, 'null']
+    ChatCompletionChunkChoice:
+      type: object
+      additionalProperties: false
+      required: [index, delta, finish_reason]
+      properties:
+        index:
+          type: integer
+          minimum: 0
+        delta:
+          $ref: '#/components/schemas/ChatCompletionDelta'
+        finish_reason:
+          type: [string, 'null']
+          enum: [stop, length, tool_calls, content_filter, function_call, null]
+        logprobs:
+          type: [object, 'null']
+          additionalProperties: true
+    ChatCompletionDelta:
+      type: object
+      additionalProperties: false
+      properties:
+        role:
+          type: string
+          enum: [assistant]
+        content:
+          type: [string, 'null']
+        refusal:
+          type: [string, 'null']
+        tool_calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolCallDelta'
+        function_call:
+          anyOf:
+            - $ref: '#/components/schemas/FunctionCallDelta'
+            - type: 'null'
+    ToolCallDelta:
+      type: object
+      additionalProperties: false
+      required: [index]
+      properties:
+        index:
+          type: integer
+          minimum: 0
+        id:
+          type: string
+        type:
+          type: string
+          enum: [function]
+        function:
+          $ref: '#/components/schemas/FunctionCallDelta'
+    FunctionCallDelta:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        arguments:
+          type: string
+    Usage:
+      type: object
+      required: [prompt_tokens, completion_tokens, total_tokens]
+      properties:
+        prompt_tokens:
+          type: integer
+          minimum: 0
+        completion_tokens:
+          type: integer
+          minimum: 0
+        total_tokens:
+          type: integer
+          minimum: 0
+      additionalProperties: true
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [message, type, param, code]
+          properties:
+            message:
+              type: string
+              maxLength: 512
+              description: Sanitized actionable message with no raw upstream/internal detail
+            type:
+              type: string
+              enum: [invalid_request_error, rate_limit_error, quota_exceeded_error, service_unavailable_error, upstream_error, timeout_error, internal_error]
+            param:
+              type: [string, 'null']
+              maxLength: 64
+            code:
+              type: [string, 'null']
+              enum: [invalid_json, invalid_request, invalid_framing, invalid_model, unsupported_field, payload_too_large, unsupported_media_type, rate_limit_exceeded, quota_exhausted, enforcement_unavailable, upstream_rate_limited, upstream_rejected, upstream_authentication_failed, upstream_unavailable, upstream_timeout, internal_error, null]
+    Liveness:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          const: alive
+    Readiness:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ready, not_ready]

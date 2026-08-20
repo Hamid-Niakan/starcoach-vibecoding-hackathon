@@ -1,0 +1,53 @@
+services:
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./deploy/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis-data:/data
+    ports: ["127.0.0.1:6389:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 1s
+      retries: 20
+
+  mock-upstream:
+    build: .
+    command: ["/app/.venv/bin/uvicorn", "tests.fixtures.mock_openai_server:app", "--host", "0.0.0.0", "--port", "8080", "--no-access-log", "--no-server-header"]
+    volumes:
+      - ./tests:/app/tests:ro
+    environment:
+      MOCK_UPSTREAM_API_KEY: fixture-secret-not-for-production
+
+  gateway:
+    build: .
+    env_file: .env.example
+    environment:
+      AI_GATEWAY_MODEL_NAME: ${AI_GATEWAY_MODEL_NAME:-test-chat}
+      AI_GATEWAY_MODEL: ${AI_GATEWAY_MODEL:-fixture-model}
+      AI_GATEWAY_API_BASE: ${AI_GATEWAY_API_BASE:-http://mock-upstream:8080/v1}
+      AI_GATEWAY_API_KEY: ${AI_GATEWAY_API_KEY:-replace-with-provider-secret}
+      AI_GATEWAY_REDIS_URL: ${AI_GATEWAY_REDIS_URL:-redis://redis:6379/0}
+      AI_GATEWAY_DEPLOYMENT_ID: ${AI_GATEWAY_DEPLOYMENT_ID:-local-gateway}
+      AI_GATEWAY_ENFORCEMENT_EPOCH: ${AI_GATEWAY_ENFORCEMENT_EPOCH:-local-v1}
+      AI_GATEWAY_IDENTITY_SECRET: ${AI_GATEWAY_IDENTITY_SECRET:-replace-with-at-least-32-random-bytes}
+      AI_GATEWAY_MODEL_MAX_INPUT_TOKENS: ${AI_GATEWAY_MODEL_MAX_INPUT_TOKENS:-8192}
+      AI_GATEWAY_ALLOW_INSECURE_LOCAL_UPSTREAM: ${AI_GATEWAY_ALLOW_INSECURE_LOCAL_UPSTREAM:-true}
+      AI_GATEWAY_ALLOW_PRIVATE_UPSTREAM: ${AI_GATEWAY_ALLOW_PRIVATE_UPSTREAM:-true}
+    ports: ["${AI_GATEWAY_PORT:-4000}:4000"]
+    depends_on:
+      redis:
+        condition: service_healthy
+      mock-upstream:
+        condition: service_started
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on: [gateway]
+
+volumes:
+  redis-data:

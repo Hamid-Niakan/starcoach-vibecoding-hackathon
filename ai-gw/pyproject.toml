@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-gateway"
+version = "0.1.0"
+description = "A small, single-model OpenAI-compatible gateway"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "httpx>=0.28,<1",
+  "orjson>=3.10,<4",
+  "prometheus-client>=0.22,<1",
+  "pydantic>=2.10,<3",
+  "pydantic-settings>=2.7,<3",
+  "redis>=5.2,<7",
+  "uvicorn>=0.34,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.14,<2",
+  "openai>=1.68,<3",
+  "openapi-spec-validator>=0.7,<1",
+  "pytest>=8.3,<9",
+  "pytest-asyncio>=0.25,<2",
+  "respx>=0.22,<1",
+  "ruff>=0.9,<1",
+]
+
+[project.scripts]
+ai-gateway = "ai_gateway.__main__:main"
+ai-gateway-bootstrap = "ai_gateway.proxy.enforcement.bootstrap:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_gateway"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+  "integration: requires local integration dependencies",
+  "redis: requires Redis",
+  "performance: explicit performance/release gate",
+  "long_running: explicit longevity gate",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["ai_gateway"]

@@ -1,0 +1,3 @@
+from tests.security.test_destination_lock import test_destination_model_credential_and_headers_are_operator_owned
+
+__all__ = ["test_destination_model_credential_and_headers_are_operator_owned"]
