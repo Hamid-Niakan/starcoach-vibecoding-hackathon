@@ -1,0 +1,40 @@
+{
+  "name": "new-docs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "generate-llms": "npm --prefix mdx-to-md-converter ci && npm --prefix mdx-to-md-converter run convert",
+    "generate-llms:pre-commit": "npm --prefix mdx-to-md-converter run pre-commit && git add public/llms public/all-links-llms.txt",
+    "build": "npm run sitemap && npm run fetch:models && next build",
+    "postbuild": "sh -c \"if [ -d public/llms ]; then mkdir -p out/llms && cp -R public/llms/* out/llms/; fi; if [ -f public/all-links-llms.txt ]; then cp public/all-links-llms.txt out/all-links-llms.txt; fi\"",
+    "start": "next start",
+    "lint": "next lint",
+    "sitemap": "node sitemap/generate.js",
+    "fetch:models": "node src/scripts/fetch-liara-ai-models.js",
+    "prepare": "npx husky install || echo husky skipped"
+  },
+  "dependencies": {
+    "@liara/platformicons": "^3.13.0",
+    "@mdx-js/loader": "^3.0.1",
+    "@mdx-js/react": "^3.0.1",
+    "@next/mdx": "^14.2.3",
+    "clsx": "^2.1.1",
+    "husky": "^9.1.7",
+    "lodash.debounce": "^4.0.8",
+    "meilisearch": "^0.41.0",
+    "next": "14.2.3",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-highlight": "^0.15.0",
+    "react-icons": "^5.2.1",
+    "ua-parser-js": "^1.0.38",
+    "yet-another-react-lightbox": "^3.23.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+}

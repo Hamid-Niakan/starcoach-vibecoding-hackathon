@@ -1,0 +1,69 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import Table from "@/components/Common/table";
+import PlatformIcon from "@/components/Common/icons";
+import {
+    GoArrowLeft,
+} from "react-icons/go";
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات بسته امکانات دیتابیس  - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات مربوط به بسته امکانات دیتابیس و آشنایی با جزئیات آن"  />
+</Head>
+# آشنایی با بسته امکانات
+
+<hr className="mb-2" />
+از جمله مهم‌ترین مراحل ساخت پروژه در لیارا، انتخاب بسته امکانات (پلن نرم‌افزاری) مناسب و متناسب با نیازهای پروژه، است. 
+در واقع در این بسته، شما می‌توانید امکانات نرم‌افزاری قابل ارائه در پروژه خود را مشاهده بفرمایید. 
+به صورت کلی، در لیارا، سه بسته وجود دارد: 
+<div className="h-2" />
+<ul>
+    <li>برنزی</li>
+    <li>نقره‌ای</li>
+    <li>طلایی</li>
+</ul>
+<div className="h-2" />
+
+در ادامه، امکاناتی که بسته‌ها ارائه می‌دهند؛ آورده شده است. توجه داشته باشید که بسته پایه، حداقل‌ترین، و بسته طلایی، حداکثر امکانات را با بیشترین مقدار ممکن، ارائه می‌دهد:
+
+<Section id='backup-features' title="امکانات پشتیبان‌گیری" />
+<Table  headers={ ["امکانات پشتیبان‌گیری", "بسته برنزی", "بسته نقره‌ای", "بسته طلایی"]}
+ data={ [
+  ["پشتیبان‌گیری خودکار ساعتی", "ندارد", "ندارد", "تا 12 ساعت گذشته"],
+  ["پشتیبان‌گیری خودکار روزانه",  "ندارد", "تا 7 روز گذشته", "تا 7 روز گذشته"],
+  ["پشتیبان‌گیری خودکار هفتگی",  "ندارد", "ندارد", "تا 4 هفته گذشته"],
+  ["پشتیبان‌گیری خودکار ماهانه",  "ندارد", "ندارد", "تا 3 ماه گذشته"],
+  ["پشتیبان‌گیری دستی",  "ندارد", "دارد", "دارد"],
+  ["حداکثر پشتیبان‌گیری دستی در ساعت",  "ندارد", "2", "10"],
+  ["فضای پشتیبان", "ندارد", "45GB", "155GB"],
+  
+]} />
+
+
+<Section id='logs' title="گزارشات " />
+<Table  headers={ ["گزارشات",  "بسته برنزی", "بسته نقره‌ای", "بسته طلایی"]}
+ data={ [
+  ["زمان نمایش نمودار منابع مصرفی سخت‌افزاری",  "تا 7 روز", "تا 30 روز", "تا 60 روز"],
+  
+]} />
+
+<Section id='other-features' title="سایر امکانات" />
+<Table  headers={["سایر امکانات", "بسته برنزی", "بسته نقره‌ای", "بسته طلایی"]}
+ data={ [
+  ["امکان شخصی‌سازی پارامترهای دیتابیس", "دارد", "دارد", "دارد"],  
+  ["قابلیت اتصال از شبکه‌ی عمومی", "دارد", "دارد", "دارد"],  
+]} />
+
+
+</Layout>

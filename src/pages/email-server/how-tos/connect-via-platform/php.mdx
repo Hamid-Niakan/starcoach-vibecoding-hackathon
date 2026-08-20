@@ -1,0 +1,323 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات اتصال به ایمیل سرور در PHP - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات اتصال به ایمیل سرور در NodeJS"  />
+</Head>
+# اتصال به ایمیل‌سرور در برنامه‌های PHP
+<hr className="mb-2" />
+
+<video
+  src="https://media.liara.ir/php/php-email-server.mp4"
+  controls="controls"
+  className="block w-full"
+  width="100%"
+/>
+
+<div className="h-2" />
+<Alert variant="success">
+<p>
+پروژه و کدهای مورد استفاده در ویدیوی فوق در <a href="https://github.com/liara-cloud/php-getting-started/tree/email-server" className="text-[#2196f3] ">اینجا</a> قابل مشاهده و دسترسی هستند.
+</p>
+</Alert>
+
+<Tabs 
+  tabs={["SMTPS", "SMTP", "HTTP"]} 
+    content={[
+      <>
+
+برای استفاده از سرویس ایمیل در برنامه‌های PHP، می‌توانید از 
+پکیج phpmailer استفاده کنید که بایستی با دستور زیر، آن را در پروژه خود، نصب کنید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="bash">
+        {`composer require phpmailer/phpmailer
+# composer require vlucas/phpdotenv phpmailer/phpmailer # for dotenv`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+پس از آن، کافیست تا طبق <a href="/email-server/how-tos/add-smtp-user" className="text-[#2196f3] ">مستندات SMTP</a>، یک دسترسی SMTP و طبق <a href="/email-server/how-tos/add-account" className="text-[#2196f3] ">مستندات افزودن نشانی</a>، یک نشانی برای ایمیل‌سرور خود، ایجاد کنید.
+در نهایت نیز، بایستی 
+اطلاعات مربوط به ایمیل‌سرور خود را 
+به متغیرهای محیطی برنامه خود، اضافه کنید؛ به عنوان مثال:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="bash">
+        {`MAIL_HOST=smtp.c1.liara.email
+MAIL_PORT=465
+MAIL_USER=happy_motse_sng2rc
+MAIL_PASSWORD=6e5617f9-19ab-4c93-b0ca-34ec7312c387
+MAIL_FROM_ADDRESS=info@example.com
+MAIL_FROM_NAME=my-app
+`}
+    </Highlight>
+</div>
+<div className="h-2" />
+<Alert variant='info'>
+<p>
+مقدار فیلد <Important>MAIL_FROM_ADDRESS</Important> باید یکی از نشانی‌های اضافه شده در سرویس ایمیل باشد.
+</p>
+</Alert>
+
+
+{/* <Alert variant='info'>
+<p>
+برای ارسال امن‌تر ایمیل‌ها، می‌توانید مقدار Port را بر روی 465 قرار دهید تا
+به جای STARTTLS، از TLS استفاده کنید. 
+</p>
+</Alert> */}
+
+در نهایت می‌توانید در پروژه‌ی خود مانند مثال زیر عمل کرده و با استفاده از دسترسی SMTP سرویس ایمیل لیارا، 
+اقدام به ارسال ایمیل‌های تراکنشی کنید: 
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="php">
+        {`<?php
+
+require 'vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use Dotenv\Dotenv;
+
+// Load environment variables from .env
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// PHPMailer Configuration
+$mail = new PHPMailer(true);
+
+try {
+    // Server settings
+    $mail->isSMTP();
+    $mail->Host = $_ENV['MAIL_HOST'];
+    $mail->SMTPAuth = true;
+    $mail->Username = $_ENV['MAIL_USER'];
+    $mail->Password = $_ENV['MAIL_PASSWORD'];
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Force SMTPS (TLS encryption)
+    $mail->Port = $_ENV['MAIL_PORT'];
+
+    // Sender and recipient
+    $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
+    $mail->addAddress('test@example.com', 'Recipient Name');
+
+    // Content
+    $mail->isHTML(true);
+    $mail->Subject = 'Test Email';
+    $mail->Body = '<h1>Hello from PHPMailer!</h1><p>This is a test email using SMTP.</p>';
+    $mail->AltBody = 'Hello from PHPMailer! This is a test email using SMTP.';
+    $mail->addCustomHeader('x-liara-tag', 'test-tag'); // use Liara Tags
+    
+    // Send the email
+    $mail->send();
+    echo 'Email sent successfully!';
+} catch (Exception $e) {
+    echo "Email could not be sent. Mailer Error: {$mail->ErrorInfo}";
+}
+`}
+    </Highlight>
+</div>
+<div className="h-2" />
+      </>,
+      <>
+
+برای استفاده از سرویس ایمیل در برنامه‌های PHP، می‌توانید از 
+پکیج phpmailer استفاده کنید که بایستی با دستور زیر، آن را در پروژه خود، نصب کنید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="bash">
+        {`composer require phpmailer/phpmailer
+# composer require vlucas/phpdotenv phpmailer/phpmailer # for dotenv`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+پس از آن، کافیست تا طبق <a href="/email-server/how-tos/add-smtp-user" className="text-[#2196f3] ">مستندات SMTP</a>، یک دسترسی SMTP و طبق <a href="/email-server/how-tos/add-account" className="text-[#2196f3] ">مستندات افزودن نشانی</a>، یک نشانی برای ایمیل‌سرور خود، ایجاد کنید.
+در نهایت نیز، بایستی 
+اطلاعات مربوط به ایمیل‌سرور خود را 
+به متغیرهای محیطی برنامه خود، اضافه کنید؛ به عنوان مثال:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="bash">
+        {`MAIL_HOST=smtp.c1.liara.email
+MAIL_PORT=587
+MAIL_USER=friendly_liskov_ihidh7
+MAIL_PASSWORD=58455bf7-f7c9-4562-9a9e-53b051f2ba79
+MAIL_FROM_ADDRESS=info@example.com
+MAIL_FROM_NAME=my-app
+`}
+    </Highlight>
+</div>
+<div className="h-2" />
+<Alert variant='info'>
+<p>
+مقدار فیلد <Important>MAIL_FROM_ADDRESS</Important> باید یکی از نشانی‌های اضافه شده در سرویس ایمیل باشد.
+</p>
+</Alert>
+
+در نهایت می‌توانید در پروژه‌ی خود مانند مثال زیر عمل کرده و با استفاده از دسترسی SMTP سرویس ایمیل لیارا، 
+اقدام به ارسال ایمیل‌های تراکنشی کنید: 
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="php">
+        {`<?php
+require 'vendor/autoload.php'; // Load Composer dependencies
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use Dotenv\Dotenv;
+
+// Load environment variables from .env file
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// Create an instance of PHPMailer
+$mail = new PHPMailer(true);
+
+try {
+    // Server settings
+    $mail->isSMTP();
+    $mail->Host       = $_ENV['MAIL_HOST'];
+    $mail->SMTPAuth   = true;
+    $mail->Username   = $_ENV['MAIL_USER'];
+    $mail->Password   = $_ENV['MAIL_PASSWORD'];
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Use STARTTLS encryption
+    $mail->Port       = $_ENV['MAIL_PORT'];
+
+    // Recipients
+    $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
+    $mail->addAddress('recipient@example.com'); // Add a recipient email
+
+    // Content
+    $mail->isHTML(true);                                  // Set email format to HTML
+    $mail->Subject = 'Test Email';
+    $mail->Body    = 'This is a test email sent using PHPMailer and SMTP.';
+    $mail->AltBody = 'This is the plain text version of the email content.';
+    $mail->addCustomHeader('x-liara-tag', 'test-tag'); // use Liara Tags
+
+
+    // Send the email
+    $mail->send();
+    echo 'Email has been sent successfully!';
+} catch (Exception $e) {
+    echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+}
+`}
+    </Highlight>
+</div>
+<div className="h-2" />
+      </>,
+           <>
+            <p>
+            برای ارسال ایمیل با استفاده از پروتکل HTTP، به <a href="/references/api/about/" className="text-[#2196f3]">API لیارا</a> و <a href="/email-server/details/mail-id" className="text-[#2196f3]">آیدی ایمیل‌سرور </a>  
+            و <a href="/email-server/how-tos/add-account" className="text-[#2196f3] ">نشانی ایمیل‌سرور</a> نیاز خواهید داشت. 
+            برای این‌کار، اطلاعات مربوطه را مشابه زیر به متغیرهای محیطی برنامه خود، اضافه کنید: 
+
+            </p>
+            
+            <div className="h-2" />
+            <div dir='ltr'>
+                <Highlight className="bash">
+                    {`MAIL_SERVER_ID=***
+MAIL_SERVICE_URL=https://mail-service.iran.liara.ir/api/v1/mails
+LIARA_API_TOKEN=***
+MAIL_FROM_EMAIL=info@example.com
+`}
+                </Highlight>
+            </div>
+            <div className="h-2" />
+<Alert variant='info'>
+<p>
+مقدار فیلد <Important>MAIL_FROM_EMAIL</Important> باید یکی از نشانی‌های اضافه شده در سرویس ایمیل باشد.
+</p>
+</Alert>
+            <div className="h-2" />
+
+
+            در نهایت می‌توانید در پروژه‌ی خود مانند مثال زیر عمل کرده و با استفاده از پروتکل HTTP، اقدام به ارسال ایمیل‌های تراکنشی کنید:
+
+            <div className="h-2" />
+            <div dir='ltr'>
+                <Highlight className="bash">
+                    {`<?php
+
+// send-email.php
+// composer require vlucas/phpdotenv guzzlehttp/guzzle
+require 'vendor/autoload.php';
+
+use GuzzleHttp\Client;
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+function sendEmail($to, $subject, $text)
+{
+    $client = new Client();
+
+    $url = $_ENV['MAIL_SERVICE_URL'] . '/' . $_ENV['MAIL_SERVER_ID'] . '/messages';
+    $token = $_ENV['LIARA_API_TOKEN'];
+
+    try {
+        $response = $client->post($url, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type' => 'application/json',
+                'x-liara-tag' => 'test_email' // Custom tag
+            ],
+            'json' => [
+                'text' => $text,
+                'subject' => $subject,
+                'to' => $to,
+                'from' => 'contact@looms.ir', // Your sender email
+                'attachments' => []
+            ]
+        ]);
+
+        return json_decode($response->getBody(), true);
+    } catch (Exception $e) {
+        return ['error' => $e->getMessage()];
+    }
+}
+
+// Example Usage
+$response = sendEmail("receiver@looms.ir", "Test Email", "This is a test email from PHP!");
+print_r($response);
+
+?>
+`}
+                </Highlight>
+            </div>
+            <div className="h-2" />
+        </>,
+  ]}
+/>
+
+<Alert variant="success">
+<p>
+همچنین بخوانید: <a href="/email-server/details/ports/" className="text-[#2196f3]">پورت‌های ایمیل‌سرور لیارا</a>
+</p>
+</Alert>
+
+</Layout>

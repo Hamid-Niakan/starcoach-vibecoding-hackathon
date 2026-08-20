@@ -1,0 +1,89 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات اتصال به RabbitMQ در پلتفرم PHP - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات قدم به قدم اتصال به پیام‌رسان RabbitMQ در PHP"  />
+</Head>
+# اتصال به RabbitMQ در برنامه‌های PHP
+<hr className="mb-2" />
+
+برای اتصال به  RabbitMQ، در ابتدا باید کتابخانه <Important>php-amqplib</Important> را در پروژه خود، با اجرای دستور زیر، نصب کنید؛ توجه داشته باشید 
+که برای نصب ماژول زیر، باید <a href="https://getcomposer.org/" className="text-[#2196f3]">composer</a> بر روی سیستم‌تان نصب باشد:
+
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="bash">
+        {`composer require php-amqplib/php-amqplib vlucas/phpdotenv`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+پس از آن، کافیست تا 
+اطلاعات مربوط به RabbitMQ خود را 
+به متغیرهای محیطی برنامه خود، اضافه کنید؛ به عنوان مثال:
+
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="bash">
+        {`RABBITMQ_HOST=fitz-roy.liara.cloud
+RABBITMQ_PORT=32923
+RABBITMQ_USER=root
+RABBITMQ_PASS=63LVuatIrWWajE7gxSj20gHL
+`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+اکنون، می‌توانید با استفاده از قطعه کد زیر به دیتابیس RabbitMQ خود متصل شوید:
+
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="php">
+        {`<?php
+
+require 'vendor/autoload.php';
+
+use PhpAmqpLib\\Connection\\AMQPStreamConnection;
+
+use Dotenv\\Dotenv;
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$host = $_ENV['RABBITMQ_HOST'];
+$port = (int) $_ENV['RABBITMQ_PORT'];
+$user = $_ENV['RABBITMQ_USER'];
+$pass = $_ENV['RABBITMQ_PASS'];
+
+try {
+    
+    $connection = new AMQPStreamConnection($host, $port, $user, $pass);
+    echo "connection successful\\n";
+
+    
+    $connection->close();
+} catch (Exception $e) {
+    echo "connection failed, error: " . $e->getMessage() . "\\n";
+}
+
+?>
+`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+
+
+</Layout>

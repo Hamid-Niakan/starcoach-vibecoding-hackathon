@@ -1,0 +1,60 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+import Asciinema from "@/components/Common/asciinema";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات تهیه فایل پشتیبان با rclone از Object Storage - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات مربوط به نحوه تهیه فایل پشتیبان از باکت با rclone در فضای ذخیره‌سازی ابری در لیارا"  />
+</Head>
+# تهیه فایل‌پشتیبان با rclone
+<hr className="mb-2" />
+
+<a href="https://rclone.org/" className="text-[#2196f3] ">Rclone</a> یک خط فرمان متن‌باز برای مدیریت و همگام‌سازی فایل‌ها در میان فضای ذخیره‌سازی ابری مختلف است. این ابزار از تعداد زیادی از سرویس‌های ذخیره‌سازی ابری  بسیاری دیگر پشتیبانی می‌کند. با Rclone، می‌توانید فایل‌ها را بین سرویس‌های ابری مختلف جابجا کرده، پشتیبان‌گیری کنید و همگام‌سازی انجام دهید.
+
+<br />
+<video
+    src="https://media.liara.ir/rclone/rclone-bucket-backup.mp4"
+    controls="controls"
+    className="block w-full"
+    width="100%"
+/>
+<br />
+
+برای انتقال فایل‌های درون یک باکت به یک باکت دیگر در یک اکانت، در ابتدا کافیست تا برنامه Rclone را از صفحه <a href="https://rclone.org/downloads/" className="text-[#2196f3] ">Downloads</a> متناسب با سیستم عامل خود، دانلود کنید. در قدم بعد باید با اجرای دستور <Important>rclone config</Important> یک <Important>remote</Important> جدید را پیکربندی کنید:
+<Asciinema id="rclone-backup-bucket" />
+
+درنهایت شما می‌توانید با اجرای دستور زیر، یک نسخه از فایل‌های موجود در باکت موردنظرتان را در لوکال ذخیره کنید:
+
+<div className="h-2" />
+<div dir='ltr'>
+<Highlight className="bash">
+{`rclone copy -PM [remote]:[bucket-name] /path/to/folder`}
+</Highlight>
+</div>
+<div className="h-2" />
+
+برای مثال اگر یک باکت با نام <Important>app-bucket</Important> در لیارا داشته باشید، می‌توانید با اجرای دستور زیر، تمامی فایل‌های موجود در این باکت را در سیستم خود کپی کنید:
+
+<div className="h-2" />
+<div dir='ltr'>
+<Highlight className="bash">
+{`rclone copy -PM r1:app-bucket myfiles/`}
+</Highlight>
+</div>
+<div className="h-2" />
+<Asciinema id="rclone-bucket-backup-execute" />
+
+</Layout>

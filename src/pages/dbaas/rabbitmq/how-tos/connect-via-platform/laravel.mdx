@@ -1,0 +1,108 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات اتصال به RabbitMQ در پلتفرم Laravel - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات قدم به قدم اتصال به پیام‌رسان RabbitMQ در فریم‌ورک Laravel"  />
+</Head>
+# اتصال به RabbitMQ در برنامه‌های Laravel
+<hr className="mb-2" />
+
+برای اتصال به RabbitMQ، در ابتدا بایستی ماژول مربوط به آن را، با اجرای دستور زیر، در پروژه خود، نصب کنید:
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="bash">
+        {`composer require php-amqplib/php-amqplib`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+سپس، کافیست تا 
+اطلاعات مربوط به RabbitMQ خود را 
+به متغیرهای محیطی برنامه خود، اضافه کنید؛ به عنوان مثال:
+
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="bash">
+        {`RABBITMQ_HOST=fitz-roy.liara.cloud
+RABBITMQ_PORT=32923
+RABBITMQ_USER=root
+RABBITMQ_PASS=63LVuatIrWWajE7gxSj20gHL
+`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+پس از این کار، می‌توانید به RabbitMQ متصل شده و از آن استفاده کنید. به عنوان مثال، می‌توانید برای تست اتصال به RabbitMQ، با اجرای دستور زیر، یک کنترلر به نام <Important>RabbitMQController</Important> بسازید:
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="bash">
+        {`php artisan make:controller RabbitMQController`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+در ادامه، می‌توانید قطعه کد زیر را در <Important>app/Http/Controllers/RabbitMQController</Important> قرار دهید:
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="laravel">
+        {`<?php
+
+namespace App\\Http\\Controllers;
+
+use Illuminate\\Http\\JsonResponse;
+use PhpAmqpLib\\Connection\\AMQPStreamConnection;
+
+class RabbitMQController extends Controller
+{
+    public function checkConnection(): JsonResponse
+    {
+        try {
+
+            $host = env('RABBITMQ_HOST');
+            $port = env('RABBITMQ_PORT');
+            $user = env('RABBITMQ_USER');
+            $pass = env('RABBITMQ_PASS');
+
+
+            $connection = new AMQPStreamConnection($host, $port, $user, $pass);
+            $connection->close();
+
+            return response()->json(['message' => 'connection successful']);
+        } catch (\\Exception $e) {
+            return response()->json(['message' => 'connection failed', 'error' => $e->getMessage()], 500);
+        }
+    }
+}
+
+`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+در نهایت، کافیست تا در <Important>routes/web.php</Important> قطعه کد زیر را نیز، اضافه کنید:
+<div className="h-2" />
+  <div dir='ltr'>
+  <Highlight className="bash">
+      {`use App\\Http\\Controllers\\RabbitMQController;
+
+Route::get('/check-rabbitmq', [RabbitMQController::class, 'checkConnection']);
+`}
+  </Highlight>
+  </div>
+<div className="h-2" />
+اکنون می‌توانید برنامه‌تان را اجرا کرده و در صفحه <Important>check-rabbitmq/</Important> وضعیت اتصال به RabbitMQ را بررسی کنید.
+
+</Layout>

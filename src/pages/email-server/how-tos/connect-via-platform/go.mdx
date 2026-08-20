@@ -1,0 +1,360 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات اتصال به ایمیل سرور در go - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات اتصال به ایمیل سرور در go"  />
+</Head>
+# اتصال به ایمیل‌سرور در برنامه‌های go
+<hr className="mb-2" />
+
+<video
+  src="https://media.liara.ir/docs/golang-mail-server.mp4"
+  controls="controls"
+  className="block w-full"
+  width="100%"
+/>
+
+<div className="h-2" />
+<Alert variant="success">
+<p>
+پروژه و کدهای مورد استفاده در ویدیوی فوق در <a href="https://github.com/liara-cloud/go-getting-started/tree/email-server" className="text-[#2196f3] ">اینجا</a> قابل مشاهده و دسترسی هستند.
+</p>
+</Alert>
+
+<Tabs 
+  tabs={["SMTPS", "SMTP", "HTTP"]} 
+    content={[
+      <>
+
+برای استفاده از سرویس ایمیل در برنامه‌های go، می‌توانید از 
+پکیج gomail استفاده کنید که بایستی با دستور زیر، آن را در پروژه خود، نصب کنید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="bash">
+        {`go get gopkg.in/gomail.v2`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+پس از آن، کافیست تا طبق <a href="/email-server/how-tos/add-smtp-user" className="text-[#2196f3] ">مستندات SMTP</a>، یک دسترسی SMTP و طبق <a href="/email-server/how-tos/add-account" className="text-[#2196f3] ">مستندات افزودن نشانی</a>، یک نشانی برای ایمیل‌سرور خود، ایجاد کنید.
+در نهایت نیز، بایستی 
+اطلاعات مربوط به ایمیل‌سرور خود را 
+به متغیرهای محیطی برنامه خود، اضافه کنید؛ به عنوان مثال:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="bash">
+        {`MAIL_HOST=smtp.c1.liara.email
+MAIL_PORT=465
+MAIL_USER=cranky_galileo_nhh78l
+MAIL_PASSWORD=7ae28d03-2e09-4211-8e79-c3a54ae5798e
+MAIL_FROM=info@example.com`}
+    </Highlight>
+</div>
+<div className="h-2" />
+<Alert variant='info'>
+<p>
+مقدار <Important>MAIL_FROM</Important>، باید یکی از نشانی‌های اضافه شده در سرویس ایمیل باشد.
+</p>
+</Alert>
+{/* <Alert variant='info'>
+<p>
+با تنظیم <Important>MAIL_USE_TLS=True</Important>، می‌توانید به‌صورت امن اقدام به ارسال ایمیل‌های تراکنشی کنید.
+</p>
+</Alert> */}
+
+در نهایت می‌توانید در پروژه‌ی خود مانند مثال زیر عمل کرده و با استفاده از دسترسی SMTP سرویس ایمیل لیارا، 
+اقدام به ارسال ایمیل‌های تراکنشی کنید: 
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="go">
+        {`package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+	gomail "gopkg.in/mail.v2"
+)
+
+func main() {
+	// Fetch environment variables
+	host := os.Getenv("MAIL_HOST")
+
+	port, err := strconv.Atoi(os.Getenv("MAIL_PORT"))
+	if err != nil {
+        panic(err)
+	}
+
+	user := os.Getenv("MAIL_USER")
+	password := os.Getenv("MAIL_PASSWORD")
+	from := os.Getenv("MAIL_FROM")
+
+	// Define the email recipient, subject, and body
+	to := "recipient@example.com"
+	subject := "Test Email"
+	body := "This is a test email."
+
+	// Set up the email message
+	msg := gomail.NewMessage()
+	msg.SetHeader("From", from)
+	msg.SetHeader("To", to)
+	msg.SetHeader("Subject", subject)
+	msg.SetHeader("x-liara-tag", "test-tag")
+	msg.SetBody("text/plain", body)
+
+	// Set up the SMTP client 
+	dialer := gomail.NewDialer(host, port, user, password)
+	dialer.SSL = true // force SSL
+
+	// Send the email
+	err = dialer.DialAndSend(msg)
+	if err != nil {
+		log.Fatalf("Failed to send email: %s", err)
+	} else {
+		fmt.Println("Email sent successfully!")
+	}
+}
+`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+      </>,
+      <>
+
+برای استفاده از سرویس ایمیل در برنامه‌های go، می‌توانید از 
+پکیج gomail استفاده کنید که بایستی با دستور زیر، آن را در پروژه خود، نصب کنید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="bash">
+        {`go get gopkg.in/gomail.v2`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+پس از آن، کافیست تا طبق <a href="/email-server/how-tos/add-smtp-user" className="text-[#2196f3] ">مستندات SMTP</a>، یک دسترسی SMTP و طبق <a href="/email-server/how-tos/add-account" className="text-[#2196f3] ">مستندات افزودن نشانی</a>، یک نشانی برای ایمیل‌سرور خود، ایجاد کنید.
+در نهایت نیز، بایستی 
+اطلاعات مربوط به ایمیل‌سرور خود را 
+به متغیرهای محیطی برنامه خود، اضافه کنید؛ به عنوان مثال:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="bash">
+        {`MAIL_HOST=smtp.c1.liara.email
+MAIL_PORT=587
+MAIL_USER=cranky_galileo_nhh78l
+MAIL_PASSWORD=7ae28d03-2e09-4211-8e79-c3a54ae5798e
+MAIL_FROM=info@example.com`}
+    </Highlight>
+</div>
+<div className="h-2" />
+<Alert variant='info'>
+<p>
+مقدار <Important>MAIL_FROM</Important>، باید یکی از نشانی‌های اضافه شده در سرویس ایمیل باشد.
+</p>
+</Alert>
+{/* <Alert variant='info'>
+<p>
+با تنظیم <Important>MAIL_USE_TLS=True</Important>، می‌توانید به‌صورت امن اقدام به ارسال ایمیل‌های تراکنشی کنید.
+</p>
+</Alert> */}
+
+در نهایت می‌توانید در پروژه‌ی خود مانند مثال زیر عمل کرده و با استفاده از دسترسی SMTP سرویس ایمیل لیارا، 
+اقدام به ارسال ایمیل‌های تراکنشی کنید: 
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="go">
+        {`package main
+
+import (
+    "fmt"
+    "log"
+    "os"
+    "strconv"
+
+    gomail "gopkg.in/gomail.v2"
+)
+
+func main() {
+    
+    // Get environment variables for SMTP settings
+    mailHost := os.Getenv("MAIL_HOST")
+    mailPortStr := os.Getenv("MAIL_PORT")
+    mailUser := os.Getenv("MAIL_USER")
+    mailPassword := os.Getenv("MAIL_PASSWORD")
+    mailFrom := os.Getenv("MAIL_FROM")
+
+    // Convert mail port from string to integer
+    mailPort, err := strconv.Atoi(mailPortStr)
+    if err != nil {
+        log.Fatalf("Invalid MAIL_PORT: %v", err)
+    }
+
+    // Create a new email message
+    m := gomail.NewMessage()
+    m.SetHeader("From", mailFrom)
+    m.SetHeader("To", "recipient@example.com") // Set recipient email here
+    m.SetHeader("Subject", "Test Email from Go with HTML")
+    m.SetHeader("x-liara-tag", "test-tag") // Custom header for tagging
+
+    // Set HTML body for the email
+    m.SetBody("text/html", \`
+        <h1>This is a test email</h1>
+        <p>Sent from Go using <b>gomail</b> and SMTP with TLS.</p>
+    \`)
+
+    // Create SMTP dialer with TLS
+    d := gomail.NewDialer(mailHost, mailPort, mailUser, mailPassword)
+
+    // Send the email
+    if err := d.DialAndSend(m); err != nil {
+        log.Fatalf("Failed to send email: %v", err)
+    }
+
+    fmt.Println("Test email sent successfully!")
+}
+`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+      </>,
+           <>
+            <p>
+            برای ارسال ایمیل با استفاده از پروتکل HTTP، به <a href="/references/api/about/" className="text-[#2196f3]">API لیارا</a> و <a href="/email-server/details/mail-id" className="text-[#2196f3]">آیدی ایمیل‌سرور </a>  
+            و <a href="/email-server/how-tos/add-account" className="text-[#2196f3] ">نشانی ایمیل‌سرور</a> نیاز خواهید داشت. 
+            برای این‌کار، اطلاعات مربوطه را مشابه زیر به متغیرهای محیطی برنامه خود، اضافه کنید: 
+
+            </p>
+            
+            <div className="h-2" />
+            <div dir='ltr'>
+                <Highlight className="bash">
+                    {`MAIL_SERVER_ID=***
+MAIL_SERVICE_URL=https://mail-service.iran.liara.ir/api/v1/mails
+LIARA_API_TOKEN=***
+MAIL_FROM=info@example.com
+`}
+                </Highlight>
+            </div>
+            <div className="h-2" />
+<Alert variant='info'>
+<p>
+مقدار فیلد <Important>MAIL_FROM</Important> باید یکی از نشانی‌های اضافه شده در سرویس ایمیل باشد.
+</p>
+</Alert>
+            <div className="h-2" />
+            در ادامه، باید پکیج‌های زیر را برای ارسال ایمیل، نصب کنید: 
+
+            <div className="h-2" />
+            <div dir='ltr'>
+                <Highlight className="bash">
+                    {`go get -u github.com/go-resty/resty/v2
+go get -u github.com/joho/godotenv`}
+                </Highlight>
+            </div>
+            <div className="h-2" />
+
+            در نهایت می‌توانید در پروژه‌ی خود مانند مثال زیر عمل کرده و با استفاده از پروتکل HTTP، اقدام به ارسال ایمیل‌های تراکنشی کنید:
+
+            <div className="h-2" />
+            <div dir='ltr'>
+                <Highlight className="bash">
+                    {`package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/go-resty/resty/v2"
+	"github.com/joho/godotenv"
+)
+
+// LoadEnv loads environment variables from .env file
+func LoadEnv() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
+
+// SendEmail sends an email using Liara Mail Service
+func SendEmail(to, subject, text string) {
+	// Load environment variables
+	LoadEnv()
+
+	mailServerID := os.Getenv("MAIL_SERVER_ID")
+	mailServiceURL := os.Getenv("MAIL_SERVICE_URL")
+	mailServiceToken := os.Getenv("LIARA_API_TOKEN")
+	defaultFromEmail := os.Getenv("MAIL_FROM")
+
+	// Define API endpoint
+	url := fmt.Sprintf("%s/%s/messages", mailServiceURL, mailServerID)
+
+	// Create email payload
+	data := map[string]interface{}{
+		"text":       text,
+		"subject":    subject,
+		"to":         to,
+		"from":       defaultFromEmail,
+		"attachments": []interface{}{},
+	}
+
+	// Send HTTP request using Resty
+	client := resty.New()
+	resp, err := client.R().
+		SetHeader("Authorization", "Bearer "+mailServiceToken).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("x-liara-tag", "golang_email"). // Custom tag
+		SetBody(data).
+		Post(url)
+
+	if err != nil {
+		log.Fatalf("Error sending email: %v", err)
+	}
+
+	// Print response
+	fmt.Println("Response Status:", resp.Status())
+	fmt.Println("Response Body:", resp.String())
+}
+
+func main() {
+	// Send an email
+	SendEmail("info@looms.ir", "Hello from Golang", "Testing Liara Mail Service in Golang!")
+}
+`}
+                </Highlight>
+            </div>
+            <div className="h-2" />
+        </>,
+  ]}
+/>
+
+<Alert variant="success">
+<p>
+همچنین بخوانید: <a href="/email-server/details/ports/" className="text-[#2196f3]">پورت‌های ایمیل‌سرور لیارا</a>
+</p>
+</Alert>
+
+</Layout>

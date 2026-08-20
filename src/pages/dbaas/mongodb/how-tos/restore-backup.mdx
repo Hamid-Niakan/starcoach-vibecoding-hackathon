@@ -1,0 +1,69 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+import Asciinema from "@/components/Common/asciinema";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات بازیابی فایل پشتیبان در MongoDB - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات بازیابی فایل پشتیبان در دیتابیس MongoDB"  />
+</Head>
+# بازیابی فایل پشتیبان در دیتابیس
+<hr className="mb-2" />
+
+
+<Tabs 
+    tabs={[".dump", "JSON & CSV"]} 
+    content={[
+    <>
+    <p>
+        برای بازیابی فایل پشتیبان با استفاده از
+        <a href="https://www.mongodb.com/docs/database-tools/mongorestore/" className="text-[#2196f3] ">mongorestore</a>، می‌توانید مشابه دستور زیر، عمل کنید:
+    </p>    
+    <div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="bash">
+        {`mongorestore -u DB_USERNAME \\
+               -p DB_PASSWORD \\
+               --host DB_HOST \\
+               --port DB_PORT \\
+               --authenticationDatabase admin \\
+               --archive=/path/to/backup-file.archive.gz \\
+               --gzip \\
+               --verbose`}
+    </Highlight>
+</div>
+        <Asciinema id="mongodb-restore" />
+    </>, 
+
+    <>
+    <p>
+        برای بازیابی فایل پشتیبان با استفاده از
+        ابزار <a href="./connect-via-gui/mongodb-compass" className="text-[#2196f3] ">MongoDB Compass</a>، می‌توانید مشابه دستورالعمل زیر، عمل کنید:
+    </p> 
+    <div className="h-4" />
+    <img
+    src="https://media.liara.ir/old/mongodb/compass-restore.gif"
+    alt="database restore backup"
+    />
+    <div className="h-2" />
+    </>          
+    ]} 
+/>
+
+<div className="h-2" />
+
+<div className="h-2" />
+
+</Layout>

@@ -1,0 +1,136 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import {GoArrowLeft} from "react-icons/go";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات راه‌اندازی سریع DNS - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات راه‌اندازی سریع سامانه مدیریت دامنه در لیارا"  />
+</Head>
+# راه‌اندازی سریع سرویس DNS
+<hr className="mb-2" />
+
+<video
+src="https://media.liara.ir/domain/dns.mp4"
+controls="controls"
+className="block w-full"
+width="100%"
+></video>
+<br />
+
+  برای راه‌اندازی سرویس DNS لیارا، با استفاده از <Link className="text-[#2196f3] " href="/references/console/about">Liara Console</Link> کافیست تا مراحل زیر را طی کنید:
+  <Step  steps={[
+{
+  step: "۱",
+  content: (
+  <>
+    <h3>ورود به حساب کاربری</h3>   
+    <p>وارد <Link className="text-[#2196f3] " href="https://console.liara.ir">کنسول لیارا</Link> شوید و با وارد کردن ایمیل یا شماره همراه ثبت شده، به اکانت خود در لیارا، لاگین کنید.</p>
+  </>
+  )
+  },
+  {
+  step: "۲",
+  content: (
+  <>
+    <h3>انتخاب حساب</h3>
+    <p>حساب شخصی یا تیم مدنظرتان برای راه‌اندازی سامانه مدیریت دامنه را انتخاب کنید.</p>
+    
+    <div className="h-4" />
+    <Alert variant="success">
+      <p>
+        همچنین بخوانید: <a href="/references/team/about/" className="text-[#2196f3]">مدیریت تیم‌ها در لیارا</a>
+      </p>
+    </Alert>
+  </>
+
+  )
+  },
+  {
+  step: "۳",
+  content: (
+  <>
+    <h3>ایجاد سرویس DNS</h3>
+    <p>
+      وارد منوی <b>DNS</b> شوید، بر روی گزینه <b>افزودن دامنه</b> کلیک کنید؛ در ادامه، 
+      در ادامه، بایستی دامنه خریداری شده خود را بدون www و https و به صورت کامل، وارد کرده و بر روی گزینه‌ی <b>ایجاد دامنه</b>، کلیک کنید؛ در 
+      ادامه، دامنه شما به وضعیت <b>در انتظار تغییر Nameserverها</b> در میاید:
+    </p>
+    <div className="h-3" />
+    <img src="https://media.liara.ir/docs/add-domain-to-dns-management-system.gif" alt="create dns management system on liara" />
+    <div className="h-3" />
+  </>
+  )
+  },
+  {
+  step: "۴",
+  content: (
+  <>
+    <h3>تنظیم NSهای لیارا</h3>
+    <p>
+      برای اتصال سرویس DNS لیارا به دامنه خود، بایستی وارد سامانه‌ای شوید که دامنه را از آنجا، خریداری نموده‌اید؛ به عنوان مثال، 
+      برای دامنه‌های با پسوند <Important>ir.</Important>، کافیست تا وارد وب‌سایت <a href="https://nic.ir" className="text-[#2196f3] ">ایرنیک</a> شوید. و NSهای لیارا را به آن سرویس، اضافه کنید. پس از انجام این کار و گذشت مدت زمانی کوتاه، دامنه‌تان در سرویس DNS لیارا، فعال می‌شود.
+    </p>
+  </>
+  )
+  },
+]}/>
+<div className="h-5" />
+با انجام مراحل فوق، تمامی کارهای مربوط به سرویس DNS انجام شده است و شما می‌توانید از آن، استفاده کنید.
+
+{/* 
+<Section id="see-also" title="همچنین بخوانید:" />
+
+<div className='h-2' />
+<div className="grid md:grid-cols-2 gap-4">
+            {[
+      {
+        title: "نسخه‌های ارائه شده دیتابیس",
+        link: "./choose-version"
+      },
+      {
+        title: "اتصال از طریق پلتفرم‌های مختلف به دیتابیس",
+        link: "./how-tos/connect-via-platform/about"
+      },
+      {
+        title: "اتصال از طریق رابط‌های کاربری گرافیکی (GUI) به دیتابیس",
+        link: "./how-tos/connect-via-gui/about"
+      },
+      {
+        title: "اتصال از طریق CommandLine Interface (CLI)",
+        link: "./how-tos/connect-via-cli/about"
+      },
+      {
+        title: "ایجاد فایل پشتیبان",
+        link: "./how-tos/create-backup"
+      },
+      {
+        title: "بازیابی فایل پشتیبان",
+        link: "./how-tos/restore-backup"
+      },
+  ].map(item =>
+    <Link href={item.link}>
+    <Card className="flex cursor-pointer w-full items-center justify-between">
+        <div className="flex items-center gap-3">
+        <h4>
+            {item.title}
+        </h4>
+        </div>
+        <GoArrowLeft className="ml-1" />
+    </Card>
+    </Link>
+            )}
+</div> */}
+
+</Layout>

@@ -1,0 +1,144 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import PlatformIcon from "@/components/Common/icons";
+
+import {
+  GoContainer,
+  GoDatabase,
+  GoRocket,
+  GoServer,
+  GoMail,
+  GoGlobe,
+  GoArrowLeft,
+} from "react-icons/go";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات ایمیل سرور - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات آشنایی با سرویس ایمیل‌سرور در لیارا"  />
+</Head>
+# سرویس ایمیل(سرور) لیارا
+<hr className="mb-2" />
+
+<Section id='what-is-email-server' title='ایمیل‌سرور چیست؟' />
+
+**ایمیل سرور (Email Server)** سیستمی است که وظیفه ارسال، دریافت و مدیریت ایمیل‌ها را بر عهده دارد. این سرور شامل نرم‌افزارهای Mail Transfer Agent یا MTA برای انتقال ایمیل‌ها و Mail Delivery Agent یا MDA برای تحویل آن‌ها به صندوق پستی کاربران است.
+ایمیل سرورها معمولاً از پروتکل‌های استانداردی مثل SMTP (برای ارسال ایمیل) استفاده می‌کنند.
+
+<Section id='what-is-transactional-email' title='ایمیل تراکنشی چیست؟' />
+ایمیل تراکنشی یا Transactional Email به ایمیل‌هایی گفته می‌شود که در پاسخ به یک عمل ارسال می‌شوند. برای مثال می‌توان ایمیل‌های تایید ثبت نام، فراموشی رمز عبور و سایر موارد مشابه را از دسته‌ی ایمیل‌های تراکنشی دانست.
+
+
+
+<Section id="liara-email-server" title="ایمیل‌سرور لیارا" />
+ساخت و پیکربندی یک ایمیل‌سرور، کار چندان آسانی نیست! اما لیارا این راه سخت را برای شما، هموار کرده است. شما می‌توانید با کمترین دانش فنی در مورد ایمیل‌سرور و نحوه پیکربندی آن، ایمیل‌سرور مخصوص به دامنه خود را داشته باشید و به کاربران خود، ایمیل‌های تراکنشی، ارسال کنید. در ادامه، بخوانید:
+
+<div className="h-4" />
+<div className="grid md:grid-cols-2 gap-4">
+            {[
+      {
+        title: "اضافه کردن نشانی",
+        link: "/email-server/how-tos/add-account"
+      },
+      {
+        title: "ارسال سریع ایمیل از کنسول",
+        link: "/email-server/how-tos/send-email-via-console"
+      },
+      {
+        title: "افزودن کاربر SMTP",
+        link: "/email-server/how-tos/add-smtp-user"
+      },
+      {
+        title: "مدیریت ایمیل‌های ارسالی",
+        link: "/email-server/how-tos/manage-sent-emails"
+      },
+      {
+        title: "مدیریت ایمیل‌های دریافتی",
+        link: "/email-server/how-tos/manage-incoming-emails"
+      },
+      {
+        title: "تنظیم هرزنامه ایمیل‌های دریافتی",
+        link: "/email-server/how-tos/set-spam"
+      },
+      {
+        title: "مسدودسازی ایمیل‌های ورودی",
+        link: "/email-server/how-tos/block-emails"
+      },
+      {
+        title: "کنترل هرزنامه ایمیل‌های ارسالی",
+        link: "/email-server/how-tos/control-spam"
+      },
+      
+      {
+        title: "تنظیم فوروارد",
+        link: "/email-server/how-tos/set-forward"
+      },
+      {
+        title: "تغییر حالت ارسال ایمیل",
+        link: "/email-server/how-tos/change-sending-mode"
+      },
+      {
+        title: "اتصال با پلتفرم‌های مختلف",
+        link: "/email-server/how-tos/connect-via-platform/about"
+      },
+      {
+        title: "استفاده از تگ (tag)",
+        link: "/email-server/how-tos/use-tags"
+      },
+  ].map(item =>
+              <Link href={item.link}>
+                <Card className="flex cursor-pointer w-full items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <h4>
+                      نحوه {item.title} 
+                    </h4>
+                  </div>
+                  <GoArrowLeft className="ml-1" />
+                </Card>
+              </Link>
+            )}
+          </div>
+
+<br />
+
+<Section id='pop3-imap-protocols' title='پروتکل‌های POP3/IMAP' />
+باتوجه به اینکه سرویس ایمیل لیارا ارائه دهنده صندوق پستی (Mailbox) نیست و برای نیازمندی‌های برنامه‌نویسی طراحی شده است، امکان استفاده از پروتکل‌های POP3/IMAP وجود ندارد. 
+و به جای آن، شما می‌توانید از پنل اختصاصی مدیریت ایمیل لیارا، استفاده کنید.
+
+
+
+<Section id='also-read' title='همچنین بخوانید:' />
+<div className="grid md:grid-cols-1 gap-4">
+            {[
+    {
+      text: 'آشنایی با جزئیات ایمیل‌سرور',
+      link: './details/about',
+    },
+  ].map(item =>
+              <Link href={item.link}>
+                <Card className="flex cursor-pointer w-full items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <h4>
+                      {item.text}
+                    </h4>
+                  </div>
+                  <GoArrowLeft className="ml-1" />
+                </Card>
+              </Link>
+            )}
+          </div>
+
+<br />
+
+</Layout>

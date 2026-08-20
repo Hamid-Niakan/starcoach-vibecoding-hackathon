@@ -1,0 +1,995 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import ThemePlatformIcon from "@/components/Common/themeIcons"
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import PlatformIcon from "@/components/Common/icons";
+import HighlightTabs from "@/components/Common/HighlightTabs";
+import IconContainer from "@/components/Common/IconContainer";
+import {
+  GoContainer,
+  GoDatabase,
+  GoRocket,
+  GoServer,
+  GoMail,
+  GoGlobe,
+  GoArrowLeft,
+  GoTelescope,
+} from "react-icons/go";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات ماندگاری پیام در چت بات - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات مربوط به نحوه ذخیره دائم پیام‌ها در چت‌بات‌ها در AI SDK متصل به سرویس هوش مصنوعی لیارا"  />
+</Head>
+
+
+# ماندگاری پیام در چت‌بات هوش مصنوعی
+<hr className="mb-2" />
+
+
+توانایی ذخیره‌سازی و بارگذاری پیام‌های چت برای اکثر چت‌بات‌های هوش مصنوعی یک قابلیت ضروری محسوب می‌شود. در این راهنما، نشان خواهیم داد که چگونه می‌توان پایداری پیام (message persistence) را با استفاده از <Important>useChat</Important> و <Important>streamText</Important> پیاده‌سازی کرد.
+
+<div className="h-4" />
+<Alert variant="warning">
+<p>
+این راهنما شامل مباحث احراز هویت (Authorization)، مدیریت خطا (Error Handling) یا سایر ملاحظات دنیای واقعی نیست. هدف اصلی آن ارائه یک مثال ساده از نحوه پیاده‌سازی قابلیت ماندگاری پیام است.
+</p>
+</Alert>
+
+<hr className="mb-2" />
+<Section id='starting-a-new-chat' title='شروع یک گفت‌وگوی جدید' />
+
+هنگامی که کاربر بدون ارائه chat ID وارد صفحه چت می‌شود، لازم است که ما یک گفت‌وگوی جدید ایجاد کنیم 
+و سپس کاربر را به همان صفحه چت با chat ID جدید هدایت کنیم. می‌توانید در مسیر <Important>app/chat/page.tsx</Important> قطعه کد زیر را قرار دهید: 
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`import { redirect } from 'next/navigation';
+import { createChat } from '@/tools/chat-store';
+
+export default async function Page() {
+  const id = await createChat(); // create a new chat
+  redirect(\`/chat/\${id}\`); // redirect to chat page, see below
+}
+`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+در پیاده‌سازی فوق، پیام‌های چت در فایل‌ها ذخیره می‌شوند. اما در یک برنامه واقعی، معمولاً بهتر است از یک دیتابیس یا یک سرویس ذخیره‌سازی ابری، مانند <a href="https://liara.ir/products/object-storage/" className="text-[#2196f3]" >فضای ذخیره‌سازی ابری لیارا</a> استفاده کنید و chat ID را از پایگاه داده دریافت کنید.
+با این حال، function interfaceها به گونه‌ای طراحی شده‌اند که بتوان آن‌ها را به‌راحتی با پیاده‌سازی‌های دیگر جایگزین کرد.
+در مسیر <Important>tools/chat-store.ts</Important>، می‌توانید قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm add ai@^4
+
+import { generateId } from 'ai';
+import { existsSync, mkdirSync } from 'fs';
+import { writeFile } from 'fs/promises';
+import path from 'path';
+
+export async function createChat(): Promise<string> {
+  const id = generateId(); // generate a unique chat ID
+  await writeFile(getChatFile(id), '[]'); // create an empty chat file
+  return id;
+}
+
+function getChatFile(id: string): string {
+  const chatDir = path.join(process.cwd(), '.chats');
+  if (!existsSync(chatDir)) mkdirSync(chatDir, { recursive: true });
+  return path.join(chatDir, \`\${id}.json\`);
+}
+`}
+    </Highlight>
+</div>
+
+<hr className="mb-2" />
+<Section id='loading-an-existing-chat' title='بارگذاری یک گفت‌وگوی موجود' />
+
+زمانی که کاربر با یک chat ID وارد یک صفحه چت می‌شود، لازم است پیام‌های آن چت، بارگذاری شده و نمایش داده شوند.
+در مسیر <Important>app/chat/[id]/page.tsx</Important>، می‌توانید قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`import { loadChat } from '@/tools/chat-store';
+import Chat from '@/ui/chat';
+
+export default async function Page(props: { params: Promise<{ id: string }> }) {
+  const { id } = await props.params; // get the chat ID from the URL
+  const messages = await loadChat(id); // load the chat messages
+  return <Chat id={id} initialMessages={messages} />; // display the chat
+}`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+تابع <Important>loadChat</Important> را در مسیر <Important>tools/chat-store.ts</Important> می‌توانید به صورت زیر پیاده‌سازی کنید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm add ai@^4
+
+import { generateId } from 'ai';
+import { existsSync, mkdirSync } from 'fs';
+import { writeFile } from 'fs/promises';
+import path from 'path';
+import { Message } from 'ai';
+import { readFile } from 'fs/promises';
+
+export async function loadChat(id: string): Promise<Message[]> {
+  return JSON.parse(await readFile(getChatFile(id), 'utf8'));
+}
+
+export async function createChat(): Promise<string> {
+  const id = generateId(); // generate a unique chat ID
+  await writeFile(getChatFile(id), '[]'); // create an empty chat file
+  return id;
+}
+
+function getChatFile(id: string): string {
+  const chatDir = path.join(process.cwd(), '.chats');
+  if (!existsSync(chatDir)) mkdirSync(chatDir, { recursive: true });
+  return path.join(chatDir, \`\${id}.json\`);
+}`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+Display Component یک کامپوننت ساده‌ی چت است که از هوک <Important>useChat</Important> برای ارسال و دریافت پیام‌ها استفاده می‌کند.
+در مسیر <Important>ui/chat.tsx</Important>، می‌توانید قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`'use client';
+
+import { Message, useChat } from '@ai-sdk/react';
+
+export default function Chat({
+  id,
+  initialMessages,
+}: { id?: string | undefined; initialMessages?: Message[] } = {}) {
+  const { input, handleInputChange, handleSubmit, messages } = useChat({
+    id, // use the provided chat ID
+    initialMessages, // initial messages if provided
+    sendExtraMessageFields: true, // send id and createdAt for each message
+  });
+
+  // simplified rendering code, extend as needed:
+  return (
+    <div>
+      {messages.map(m => (
+        <div key={m.id}>
+          {m.role === 'user' ? 'User: ' : 'AI: '}
+          {m.content}
+        </div>
+      ))}
+
+      <form onSubmit={handleSubmit}>
+        <input value={input} onChange={handleInputChange} />
+      </form>
+    </div>
+  );
+}`}
+    </Highlight>
+</div>
+
+<hr className="mb-2" />
+<Section id='storing-messages' title='ذخیره‌سازی پیام‌ها' />
+
+هوک <Important>useChat</Important> مقدار chat ID و پیام‌ها را به سمت بک‌اند ارسال می‌کند. ما گزینه‌ی <Important>sendExtraMessageFields</Important> را فعال کردیم تا فیلدهای <Important>id</Important> و <Important>createdAt</Important> نیز ارسال شوند؛ در نظر داشته باشید که پیام‌ها، در قالب پیام‌های <Important>useChat</Important> ذخیره خواهند شد.
+
+<div className="h-2" />
+<Alert variant="info">
+<p>
+    قالب پیام‌های <Important>useChat</Important> با قالب پیام‌های <Important>CoreMessage</Important> متفاوت است. قالب پیام‌های <Important>useChat</Important> برای نمایش در فرانت‌اند طراحی شده و شامل فیلدهای اضافی نظیر <Important>id</Important> و <Important>createdAt</Important> است. پیشنهاد ما این است که پیام‌ها را در قالب پیام‌های <Important>useChat</Important> ذخیره کنید.
+</p>
+</Alert>
+<div className="h-2" />
+
+فرآیند ذخیره‌سازی پیام‌ها در callback مربوط به <Important>onFinish</Important> در تابع <Important>streamText</Important> انجام می‌شود. <Important>onFinish</Important> پیام‌های پاسخ هوش مصنوعی را به صورت یک آرایه‌ی <Important>[]CoreMessage</Important> دریافت می‌کند و ما با استفاده از یک helper به نام <Important>appendResponseMessages</Important>، پیام‌های پاسخ را به مجموعه‌ی پیام‌های چت اضافه می‌کنیم.
+در مسیر <Important>app/api/chat/route.ts</Important>، می‌توانید قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm add @ai-sdk/openai@^1 ai@^4
+
+import { createOpenAI } from '@ai-sdk/openai';
+import { appendResponseMessages, streamText } from 'ai';
+import { saveChat } from '@/tools/chat-store';
+
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+export async function POST(req: Request) {
+  const { messages, id } = await req.json();
+
+  const result = streamText({
+    model: my_model('openai/gpt-4o-mini'),
+    messages,
+    async onFinish({ response }) {
+      await saveChat({
+        id,
+        messages: appendResponseMessages({
+          messages,
+          responseMessages: response.messages,
+        }),
+      });
+    },
+  });
+
+  return result.toDataStreamResponse();
+}`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+ذخیره‌سازی واقعی پیام‌ها در تابع <Important>saveChat</Important> انجام می‌شود. 
+در مسیر <Important>tools/chat-store.ts</Important>، می‌توانید قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm add ai@^4
+
+import { generateId } from 'ai';
+import { existsSync, mkdirSync } from 'fs';
+import { writeFile } from 'fs/promises';
+import path from 'path';
+import { Message } from 'ai';
+import { readFile } from 'fs/promises';
+
+export async function saveChat({
+  id,
+  messages,
+}: {
+  id: string;
+  messages: Message[];
+}): Promise<void> {
+  const content = JSON.stringify(messages, null, 2);
+  await writeFile(getChatFile(id), content);
+}
+
+export async function loadChat(id: string): Promise<Message[]> {
+  return JSON.parse(await readFile(getChatFile(id), 'utf8'));
+}
+
+export async function createChat(): Promise<string> {
+  const id = generateId(); // generate a unique chat ID
+  await writeFile(getChatFile(id), '[]'); // create an empty chat file
+  return id;
+}
+
+function getChatFile(id: string): string {
+  const chatDir = path.join(process.cwd(), '.chats');
+  if (!existsSync(chatDir)) mkdirSync(chatDir, { recursive: true });
+  return path.join(chatDir, \`\${id}.json\`);
+}`}
+    </Highlight>
+</div>
+
+<hr className="mb-2" />
+<Section id='message-ids' title='IDهای پیام' />
+
+علاوه بر chat ID، هر پیام دارای یک ID نیز است. از این ID می‌توان برای کارهایی مانند مدیریت هر پیام، استفاده کرد.
+IDهای مربوط به پیام‌های کاربر توسط هوک <Important>useChat</Important> در سمت کلاینت تولید می‌شوند، در حالی که IDهای پیام‌های پاسخ هوش مصنوعی توسط <Important>streamText</Important> ساخته می‌شوند.
+شما می‌توانید قالب IDها را با ارائه‌ی ID generatorها کنترل کنید. می‌توانید در مسیر <Important>ui/chat.tsx</Important>، قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm add ai@^4
+
+'use client';
+
+import { Message, useChat } from '@ai-sdk/react';
+import { createIdGenerator } from 'ai';
+
+export default function Chat({
+  id,
+  initialMessages,
+}: { id?: string | undefined; initialMessages?: Message[] } = {}) {
+  const { input, handleInputChange, handleSubmit, messages } = useChat({
+    id, 
+    initialMessages, 
+    sendExtraMessageFields: true, 
+
+    // id format for client-side messages:
+    generateId: createIdGenerator({
+    prefix: 'msgc',
+    size: 16,
+    }),
+  });
+
+  return (
+    <div>
+      {messages.map(m => (
+        <div key={m.id}>
+          {m.role === 'user' ? 'User: ' : 'AI: '}
+          {m.content}
+        </div>
+      ))}
+
+      <form onSubmit={handleSubmit}>
+        <input value={input} onChange={handleInputChange} />
+      </form>
+    </div>
+  );
+}`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+در مسیر <Important>app/api/chat/route.ts</Important>، می‌توانید قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm add @ai-sdk/openai@^1 ai@^4
+
+import { createOpenAI } from '@ai-sdk/openai';
+import { appendResponseMessages, streamText, createIdGenerator } from 'ai';
+import { saveChat } from '@/tools/chat-store';
+
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+export async function POST(req: Request) {
+  const { messages, id } = await req.json();
+
+  const result = streamText({
+    model: my_model('openai/gpt-4o-mini'),
+    messages,
+    async onFinish({ response }) {
+      await saveChat({
+        id,
+        messages: appendResponseMessages({
+          messages,
+          responseMessages: response.messages,
+        }),
+      });
+    },
+    experimental_generateMessageId: createIdGenerator({
+      prefix: 'msgs',
+      size: 16,
+    }),
+
+  });
+
+  return result.toDataStreamResponse();
+}`}
+    </Highlight>
+</div>
+
+<Alert variant="info">
+<p>
+پروژه آماده استفاده مطابق با آموزش فوق، در <a href="https://github.com/liara-cloud/ai-sdk-examples/tree/master/AI-SDK-UI/chatbot-message-persistence-part-1" className="text-[#2196f3]">گیت‌هاب لیارا</a> موجود است که می‌توانید از آن، استفاده کنید. 
+</p>
+</Alert>
+
+<hr className="mb-2" />
+
+<Section id='sending-only-the-last-message' title='ارسال فقط آخرین پیام' />
+
+پس از پیاده‌سازی قابلیت ماندگاری پیام، ممکن است بخواهید تنها آخرین پیام را به سرور ارسال کنید. این کار میزان داده‌های ارسالی به سرور در هر درخواست را کاهش داده و می‌تواند عملکرد سیستم را بهبود بخشد.
+در مسیر <Important>ui/chat.tsx</Important>، می‌توانید قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm add ai@^4
+
+'use client';
+
+import { Message, useChat } from '@ai-sdk/react';
+import { createIdGenerator } from 'ai';
+
+export default function Chat({
+  id,
+  initialMessages,
+}: { id?: string | undefined; initialMessages?: Message[] } = {}) {
+  const { input, handleInputChange, handleSubmit, messages } = useChat({
+    id, 
+    initialMessages, 
+    sendExtraMessageFields: true, 
+
+    generateId: createIdGenerator({
+    prefix: 'msgc',
+    size: 16,
+    }),
+    
+    // only send the last message to the server:
+    experimental_prepareRequestBody({ messages, id }) {
+    return { message: messages[messages.length - 1], id };
+    },
+  });
+
+  return (
+    <div>
+      {messages.map(m => (
+        <div key={m.id}>
+          {m.role === 'user' ? 'User: ' : 'AI: '}
+          {m.content}
+        </div>
+      ))}
+
+      <form onSubmit={handleSubmit}>
+        <input value={input} onChange={handleInputChange} />
+      </form>
+    </div>
+  );
+}`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+سپس، در سمت سرور، شما می‌توانید پیام‌های قبلی را بارگذاری کرده و پیام جدید را به پیام‌های قبلی اضافه کنید.
+در مسیر <Important>app/api/chat/route.ts</Important>، می‌توانید قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm add @ai-sdk/openai@^1 ai@^4
+
+import { createOpenAI } from '@ai-sdk/openai';
+import { appendResponseMessages, streamText, createIdGenerator, appendClientMessage } from 'ai';
+import { saveChat, loadChat } from '@/tools/chat-store';
+
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+export async function POST(req: Request) {
+  const { message, id } = await req.json();
+
+  const previousMessages = await loadChat(id);
+
+  const messages = appendClientMessage({
+    messages: previousMessages,
+    message,
+  });
+
+
+  const result = streamText({
+    model: my_model('openai/gpt-4o-mini'),
+    messages,
+    async onFinish({ response }) {
+      await saveChat({
+        id,
+        messages: appendResponseMessages({
+          messages,
+          responseMessages: response.messages,
+        }),
+      });
+    },
+    experimental_generateMessageId: createIdGenerator({
+      prefix: 'msgs',
+      size: 16,
+    }),
+
+  });
+
+  return result.toDataStreamResponse();
+}`}
+    </Highlight>
+</div>
+
+<hr className="mb-2" />
+<Section id='handling-client-disconnects' title='مدیریت قطع اتصال کلاینت' />
+
+به‌طور پیش‌فرض، تابع <Important>streamText</Important> در AI SDK از مکانیزم backpressure برای ارائه‌دهنده‌ی مدل استفاده می‌کند تا از مصرف توکن‌هایی که هنوز درخواست نشده‌اند جلوگیری کند.
+در واقع، اگر کلاینت اتصال خود را قطع کند (مثلاً  با بستن تب مرورگر یا به دلیل یک مشکل در شبکه)، استریم از LLM متوقف شده و مکالمه ممکن است در وضعیت ناقص قرار بگیرد. 
+<div className="h-2" />
+
+با فرض اینکه یک <a href="/ai/ai-sdk-ui/chatbot-message-persistence/#storing-messages" className="text-[#2196f3]" >راهکار ذخیره‌سازی</a> در اختیار دارید، می‌توانید از متد <Important>consumeStream</Important> برای مصرف استریم در بک‌اند استفاده کرده و سپس نتیجه را مانند حالت عادی ذخیره کنید. استفاده از <Important>consumeStream</Important> در عمل، backpressure را حذف می‌کند و نتیجه حتی زمانی که کلاینت از قبل قطع اتصال کرده باشد نیز ذخیره می‌شود.
+<div className="h-2" />
+
+در مسیر <Important>app/api/chat/route.ts</Important>، می‌توانید قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm add @ai-sdk/openai@^1 ai@^4
+
+import { createOpenAI } from '@ai-sdk/openai';
+import { appendResponseMessages, streamText, createIdGenerator, appendClientMessage } from 'ai';
+import { saveChat, loadChat } from '@/tools/chat-store';
+
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+export async function POST(req: Request) {
+  const { message, id } = await req.json();
+
+  const previousMessages = await loadChat(id);
+
+  const messages = appendClientMessage({
+    messages: previousMessages,
+    message,
+  });
+
+  const result = streamText({
+    model: my_model('openai/gpt-4o-mini'),
+    messages,
+    async onFinish({ response }) {
+      await saveChat({
+        id,
+        messages: appendResponseMessages({
+          messages,
+          responseMessages: response.messages,
+        }),
+      });
+    },
+    experimental_generateMessageId: createIdGenerator({
+      prefix: 'msgs',
+      size: 16,
+    }),
+
+  });
+
+  // consume the stream to ensure it runs to completion & triggers onFinish
+  // even when the client response is aborted:
+  result.consumeStream(); // no await
+
+  return result.toDataStreamResponse();
+}`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+هنگامی که کاربر صفحه را بعد از قطع اتصال، مجدداً بارگذاری می‌کند، چت از راهکار ذخیره‌سازی بازیابی خواهد شد. 
+
+<div className="h-2" />
+<Alert variant="info">
+<p>
+در برنامه‌های واقعی، بهتر است که وضعیت درخواست را در پیام‌های ذخیره‌شده‌تان نیز رهگیری کرده و در کلاینت از آن استفاده کنید تا 
+  حالتی را که در آن، کلاینت صفحه را بعد از قطع اتصال مجدداً بارگذاری می‌کند، اما استریم هنوز کامل نشده است، پوشش دهد.
+</p>
+</Alert>
+
+<hr className="mb-2" />
+<Section id='resuming-ongoing-streams' title='ادامه دادن استریم‌های در حال اجرا' />
+
+<Alert variant="info">
+<p>
+  این قابلیت آزمایشی است و ممکن است در آینده تغییر کند.
+</p>
+</Alert>
+<div className="h-2" />
+تفاوتی
+نمی‌کند که کلاینت بخاطر قطع شبکه یا بارگذاری مجدد صفحه، استریم را از دست داده باشد؛ 
+هوک <Important>useChat</Important> از قابلیت ادامه دادن استریم در حال اجرا در صفحه چت برای هر کلاینتی، به صورت آزمایشی، پشتیبانی می‌کند.
+این قابلیت برای ساخت اپلیکیشن‌هایی که درگیر مکالمه‌های طولانی هستند مفید است. همچنین این قابلیت، اطمینان حاصل می‌کند که در شرایط رخ دادن مشکلات شبکه، پیام‌ها از دست نمی‌روند.
+<div className="h-2" />
+
+در ادامه، پیش‌نیازها برای چت‌اپلیکیشن شما برای پشتیبانی از این قابلیت قرار گرفته است. 
+
+<div className="h-2" />
+<ul>
+<li>نصب پکیج <a href="https://www.npmjs.com/package/resumable-stream" className="text-[#2196f3]">resumable-stream</a> که به شما کمک می‌کند مکانیزم publisher/subscriber را در استریم‌‌ها ایجاد و مدیریت کنید</li>
+<div className="h-1" />
+<li>ایجاد یک <a href="" className="https://liara.ir/landing/%D9%87%D8%A7%D8%B3%D8%AA-%D8%A7%D8%A8%D8%B1%DB%8C-redis/">دیتابیس Redis</a> برای ذخیره وضعیت (state) استریم</li>
+<div className="h-1" />
+<li>ساخت یک جدول که IDهای استریم مرتبط با یک چت را رهگیری می‌کند</li>
+</ul>
+<div className="h-2" />
+
+برای ادامه دادن یک استریم، شما از تابع <Important>experimental_resume</Important> موجود در هوک <Important>useChat</Important> استفاده خواهید کرد. شما باید این تابع را در زمان mount اولیه‌ی هوک، داخل کامپوننت اصلی چت، فراخوانی کنید. 
+در مسیر <Important>app/components/chat.tsx</Important>، قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`'use client';
+
+import { useChat } from '@ai-sdk/react';
+import type { UIMessage } from 'ai';
+import { Input } from '@/app/components/input';
+import { Messages } from '@/app/components/messages';
+import { useAutoResume } from '@/app/hooks/use-auto-resume';
+
+export function Chat({ id, initialMessages = [] }: { id: string; initialMessages?: UIMessage[] }) {
+  const { experimental_resume, data, setMessages } = useChat({ id });
+
+  useAutoResume({
+    autoResume: true,
+    initialMessages,
+    experimental_resume,
+    data,
+    setMessages,
+  });
+
+  return (
+    <div>
+      <Messages />
+      <Input />
+    </div>
+  );
+}`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+برای یک پیاده‌سازی مقاوم‌تر که شرایط رقابتی احتمالی در هنگام اجرای درخواست ادامه دادن (resume request) را مدیریت کند، می‌توانید از هوک <Important>useAutoResume</Important> زیر استفاده کنید.
+این هوک به‌صورت خودکار بخش داده‌ی SSE مربوط به <Important>append-message</Important> را که توسط سرور استریم می‌شود، پردازش می‌کند.
+در مسیر <Important>app/hooks/use-auto-resume.tsx</Important>، قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`'use client';
+
+import { useEffect } from 'react';
+import type { UIMessage } from 'ai';
+import type { UseChatHelpers } from '@ai-sdk/react';
+
+export type DataPart = { type: 'append-message'; message: string };
+
+export interface Props {
+  autoResume: boolean;
+  initialMessages: UIMessage[];
+  experimental_resume: UseChatHelpers['experimental_resume'];
+  data: UseChatHelpers['data'];
+  setMessages: UseChatHelpers['setMessages'];
+}
+
+export function useAutoResume({
+  autoResume,
+  initialMessages,
+  experimental_resume,
+  data,
+  setMessages,
+}: Props) {
+  useEffect(() => {
+    if (!autoResume) return;
+
+    const mostRecentMessage = initialMessages.at(-1);
+
+    if (mostRecentMessage?.role === 'user') {
+      experimental_resume();
+    }
+
+    // we intentionally run this once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!data || data.length === 0) return;
+
+    const dataPart = data[0] as DataPart;
+
+    if (dataPart.type === 'append-message') {
+      const message = JSON.parse(dataPart.message) as UIMessage;
+      setMessages([...initialMessages, message]);
+    }
+  }, [data, initialMessages, setMessages]);
+}`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+سپس، می‌توانید از این هوک، مانند قطعه کد زیر در کامپوننت چت خود استفاده کنید.
+در مسیر <Important>app/components/chat.tsx</Important>، قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`'use client';
+
+import { useChat } from '@ai-sdk/react';
+import { Input } from '@/app/components/input';
+import { Messages } from '@/app/components/messages';
+import { useAutoResume } from '@/app/hooks/use-auto-resume';
+
+export function Chat() {
+  const { experimental_resume, data, setMessages } = useChat({ id });
+
+  useAutoResume({
+    autoResume: true,
+    initialMessages: [],
+    experimental_resume,
+    data,
+    setMessages,
+  });
+
+  return (
+    <div>
+      <Messages />
+      <Input />
+    </div>
+  );
+}`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+هر بار که تابع  <Important>experimental_resume</Important> فراخوانی می‌شود، یک درخواست <Important>GET</Important> به endpoint پیکربندی شده چت ارسال می‌کند (به صورت پیش‌فرض، <Important>api/chat/</Important>)
+اگر استریمی فعال باشد، این تابع، ادامه‌ی آن را، از همان نقطه‌ی قبلی دنبال می‌کند، در غیر این صورت بدون خطا خاتمه می‌یابد.
+<div className="h-4" />
+
+درخواست GET به‌صورت خودکار پارامتر کوئری <Important>chatId</Important> را به URL اضافه می‌کند تا بتوان چتی که درخواست به آن تعلق دارد را شناسایی کرد. با استفاده از <Important>chatId</Important>، می‌توانید آخرین stream ID را از پایگاه داده بازیابی کرده و استریم را ادامه دهید.
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`GET /api/chat?chatId=<your-chat-id>`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+قبل‌تر، فقط کافی بود که یک <Important>POST</Important> handler برای مسیر <Important>api/chat/</Important> پیاده‌سازی کنید تا بتوان چت‌های جدید ایجاد کرد. 
+هنگام استفاده از <Important>experimental_resume</Important>، شما باید همچنین یک <Important>GET</Important> handler برای مسیر <Important>api/chat/</Important> پیاده‌سازی کنید تا بتوان استریم را ادامه داد.
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`GET /api/chat?chatId=<your-chat-id>`}
+    </Highlight>
+</div>
+
+<Section id='1-implement-the-get-handler' title='۱. پیاده‌سازی GET handler' headingTag="h3" />
+
+یک متد <Important>GET</Important> به <Important>api/chat/</Important> اضافه کنید که: 
+
+<div className="h-2" />
+<ul>
+<li><Important>chatId</Important> را از query string بخواند</li>
+<div className="h-1" />
+<li>بررسی کند که <Important>chatId</Important> آماده است یا نه</li>
+<div className="h-1" />
+<li>تمامی stream IDهای ذخیره‌ شده برای آن چت را بارگذاری کند</li>
+<div className="h-1" />
+<li>آخرین stream ID را به عنوان آرگومان به <Important>()streamContext.resumableStream</Important> بدهد</li>
+<div className="h-1" />
+<li>در صورتی که استریم از قبل بسته شده بود، به یک استریم خالی (empty stream) برگردد</li>
+<div className="h-1" />
+</ul>
+<div className="h-2" />
+
+در مسیر <Important>app/api/chat/route.ts</Important>، می‌توانید قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`import { loadStreams } from '@/util/chat-store';
+import { createDataStream, getMessagesByChatId } from 'ai';
+import { after } from 'next/server';
+import { createResumableStreamContext } from 'resumable-stream';
+
+const streamContext = createResumableStreamContext({
+  waitUntil: after,
+});
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const chatId = searchParams.get('chatId');
+
+  if (!chatId) {
+    return new Response('id is required', { status: 400 });
+  }
+
+  const streamIds = await loadStreams(chatId);
+
+  if (!streamIds.length) {
+    return new Response('No streams found', { status: 404 });
+  }
+
+  const recentStreamId = streamIds.at(-1);
+
+  if (!recentStreamId) {
+    return new Response('No recent stream found', { status: 404 });
+  }
+
+  const emptyDataStream = createDataStream({
+    execute: () => {},
+  });
+
+  const stream = await streamContext.resumableStream(
+    recentStreamId,
+    () => emptyDataStream,
+  );
+
+  if (stream) {
+    return new Response(stream, { status: 200 });
+  }
+
+  /*
+   * For when the generation is "active" during SSR but the
+   * resumable stream has concluded after reaching this point.
+   */
+
+  const messages = await getMessagesByChatId({ id: chatId });
+  const mostRecentMessage = messages.at(-1);
+
+  if (!mostRecentMessage || mostRecentMessage.role !== 'assistant') {
+    return new Response(emptyDataStream, { status: 200 });
+  }
+
+  const messageCreatedAt = new Date(mostRecentMessage.createdAt);
+
+  const streamWithMessage = createDataStream({
+    execute: buffer => {
+      buffer.writeData({
+        type: 'append-message',
+        message: JSON.stringify(mostRecentMessage),
+      });
+    },
+  });
+
+  return new Response(streamWithMessage, { status: 200 });
+}`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+بعد از پیاده‌سازی GET handler، می‌توانید POST handler را به‌روزرسانی کنید تا ساخت استریم‌های قابل ادامه دادن را مدیریت کند.
+
+<Section id='2-update-the-post-handler' title='۲. به‌روزرسانی POST handler' />
+
+هنگام ایجاد یک chat completion جدید، باید مراحل زیر را انجام دهید:
+
+<div className="h-2" />
+<ul>
+<li>یک <Important>streamId</Important> جدید ایجاد کنید</li>
+<div className="h-1" />
+<li>آن را همراه با <Important>chatId</Important> ذخیره کنید</li>
+<div className="h-1" />
+<li>یک <Important>createDataStream</Important> آغاز کنید که توکن‌ها را هنگام ورود، پردازش و منتقل کند</li>
+<div className="h-1" />
+<li>استریم جدید را به <Important>()streamContext.resumableStream</Important> تحویل دهید</li>
+</ul>
+<div className="h-2" />
+
+در مسیر <Important>app/api/chat/route.ts</Important>، می‌توانید قطعه کد زیر را قرار دهید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+      {`import { loadStreams, loadChat } from '@/util/chat-store';
+import {
+  appendResponseMessages,
+  createDataStream,
+  generateId,
+  streamText,
+} from 'ai';
+import { appendStreamId } from '@/util/chat-store';
+import { saveChat } from '@/tools/chat-store';
+import { after } from 'next/server';
+import { createResumableStreamContext } from 'resumable-stream/ioredis';
+import { createOpenAI } from '@ai-sdk/openai';
+
+
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+const streamContext = createResumableStreamContext({
+  waitUntil: after,
+});
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const chatId = searchParams.get('chatId');
+
+  if (!chatId) {
+    return new Response('id is required', { status: 400 });
+  }
+
+  const streamIds = await loadStreams(chatId);
+
+  if (!streamIds.length) {
+    return new Response('No streams found', { status: 404 });
+  }
+
+  const recentStreamId = streamIds.at(-1);
+
+  if (!recentStreamId) {
+    return new Response('No recent stream found', { status: 404 });
+  }
+
+  const emptyDataStream = createDataStream({
+    execute: () => {},
+  });
+
+  const stream = await streamContext.resumableStream(
+    recentStreamId,
+    () => emptyDataStream,
+  );
+
+  if (stream) {
+    return new Response(stream, { status: 200 });
+  }
+
+  /*
+   * For when the generation is "active" during SSR but the
+   * resumable stream has concluded after reaching this point.
+   */
+
+  const messages = await loadChat(chatId);
+  const mostRecentMessage = messages.at(-1);
+
+  if (!mostRecentMessage || mostRecentMessage.role !== 'assistant') {
+    return new Response(emptyDataStream, { status: 200 });
+  }
+
+  const messageCreatedAt = mostRecentMessage.createdAt
+    ? new Date(mostRecentMessage.createdAt)
+    : new Date();
+
+  const streamWithMessage = createDataStream({
+    execute: buffer => {
+      buffer.writeData({
+        type: 'append-message',
+        message: JSON.stringify(mostRecentMessage),
+      });
+    },
+  });
+
+  return new Response(streamWithMessage, { status: 200 });
+}
+
+export async function POST(request: Request) {
+  const { id, messages } = await request.json();
+  const streamId = generateId();
+
+  // Record this new stream so we can resume later
+  await appendStreamId({ chatId: id, streamId });
+
+  // Build the data stream that will emit tokens
+  const stream = createDataStream({
+    execute: dataStream => {
+      const result = streamText({
+        model: my_model('openai/gpt-4o-mini'),
+        messages,
+        onFinish: async ({ response }) => {
+          await saveChat({
+            id,
+            messages: appendResponseMessages({
+              messages,
+              responseMessages: response.messages,
+            }),
+          });
+        },
+      });
+
+      // Return a resumable stream to the client
+      result.mergeIntoDataStream(dataStream);
+    },
+  });
+
+  return new Response(
+    await streamContext.resumableStream(streamId, () => stream),
+  );
+}`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+با پیاده‌سازی هر دو handler، کلاینت‌های شما اکنون می‌توانند استریم‌های در حال اجرا را به‌صورت مطمئن و بدون مشکل ازسر بگیرند.
+
+
+</Layout>

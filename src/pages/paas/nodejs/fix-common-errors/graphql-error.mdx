@@ -1,0 +1,46 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات رفع خطای get query missing در GraphQL در NodeJS - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات مربوط به رفع خطای get query missing در GraphQL در پلتفرم NodeJS در لیارا"  />
+</Head>
+# رفع خطای GET query missing در GraphQL
+<hr className="mb-2" />
+
+قابلیت Playground در Apollo Server در محیط Production به‌صورت پیش‌فرض غیرفعال است. برای فعال‌سازی، لازم است تا فیلدهای <Important>introspection</Important> و <Important>playground</Important> را برابر با  <Important>true</Important> تنظیم و سپس استقرار کنید:
+
+    <div className="h-2" />
+    <div dir='ltr'>
+        <Highlight className="js">
+            {`const { ApolloServer } = require('apollo-server');
+const { typeDefs, resolvers } = require('./schema');
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  introspection: true,
+  playground: true,
+});
+
+server.listen().then(({ url }) => {
+  console.log(\`🚀 Server ready at \${url}\`);
+});`}
+        </Highlight>
+    </div>
+    <div className="h-2" />
+
+</Layout>
