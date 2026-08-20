@@ -30,11 +30,13 @@ function categorizeModel(modelId) {
 }
 
 async function main() {
+  const outputPath = path.join(process.cwd(), "src", "data", "liara-ai-models.json");
   try {
     const res = await fetch("https://ai.liara.ir/v1/models", {
       headers: { "Content-Type": "application/json" }
     });
 
+    if (!res.ok) throw new Error(`Model API returned HTTP ${res.status}`);
     const data = await res.json();
 
     const categorized = {};
@@ -48,8 +50,6 @@ async function main() {
       categorized[category].push(m.id);
     });
 
-    const outputPath = path.join(process.cwd(), "src", "data", "liara-ai-models.json");
-
     const dirPath = path.join(process.cwd(), "src", "data");
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
@@ -59,8 +59,12 @@ async function main() {
 
     console.log("liara-ai-models.json generated successfully!");
   } catch (error) {
-    console.error("Error while fetching or writing model data:", error);
-    process.exit(1);
+    if (fs.existsSync(outputPath)) {
+      console.warn("Model API unavailable; using the committed model snapshot.");
+      return;
+    }
+    console.error("Model API unavailable and no committed snapshot exists:", error);
+    process.exitCode = 1;
   }
 }
 

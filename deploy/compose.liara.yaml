@@ -1,0 +1,11 @@
+services:
+  liara:
+    build:
+      context: ..
+      dockerfile: apps/liara-docs/Dockerfile.monorepo
+      args:
+        {
+          NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:?set NEXT_PUBLIC_API_URL}",
+        }
+    ports: ["8080:8080"]
+    restart: unless-stopped

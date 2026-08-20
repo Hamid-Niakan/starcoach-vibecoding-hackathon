@@ -1,0 +1,147 @@
+.hackathon-chat {
+  --chat-accent: #7c3aed;
+  display: flex;
+  min-height: 560px;
+  max-height: calc(100vh - 2rem);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  color: #111827;
+}
+.hackathon-chat__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 1.25rem;
+}
+.hackathon-chat__header h1 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.hackathon-chat__header p {
+  margin: 0.3rem 0 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+.hackathon-chat__badge {
+  white-space: nowrap;
+  border-radius: 999px;
+  background: #f3e8ff;
+  color: #6b21a8;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.72rem;
+}
+.hackathon-chat__messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding: 1.25rem;
+}
+.hackathon-chat__empty {
+  margin: auto;
+  max-width: 28rem;
+  text-align: center;
+  color: #6b7280;
+}
+.hackathon-chat__message {
+  max-width: min(85%, 44rem);
+  border-radius: 16px;
+  padding: 0.75rem 1rem;
+  line-height: 1.8;
+}
+.hackathon-chat__message > span {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+.hackathon-chat__message p {
+  margin: 0.25rem 0;
+}
+.hackathon-chat__message pre,
+.hackathon-chat__message code {
+  direction: ltr;
+  text-align: left;
+}
+.hackathon-chat__message--user {
+  align-self: flex-start;
+  background: #ede9fe;
+}
+.hackathon-chat__message--assistant {
+  align-self: flex-end;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+.hackathon-chat__error {
+  margin: 0 1rem;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.85rem;
+}
+.hackathon-chat__composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem;
+}
+.hackathon-chat__composer textarea {
+  min-height: 48px;
+  flex: 1;
+  resize: none;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  background: #fff;
+  color: #111827;
+  padding: 0.75rem;
+  outline: none;
+}
+.hackathon-chat__composer textarea:focus {
+  border-color: var(--chat-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--chat-accent) 18%, transparent);
+}
+.hackathon-chat__composer button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--chat-accent);
+  color: #fff;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+}
+.hackathon-chat__composer button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 640px) {
+  .hackathon-chat {
+    min-height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+  .hackathon-chat__message {
+    max-width: 92%;
+  }
+}

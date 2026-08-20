@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16.4-alpine
+    environment:
+      POSTGRES_USER: hackathon
+      POSTGRES_PASSWORD: hackathon
+      POSTGRES_DB: hackathon
+    ports: ["5432:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hackathon -d hackathon"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+  api:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    environment:
+      DATABASE_URL: postgres://hackathon:hackathon@postgres:5432/hackathon
+      DUCKDB_PATH: /data/analytics.duckdb
+      ZARINPAL_DATA_DIR: /data/zarinpal
+      CORS_ORIGINS: http://localhost:3001,http://localhost:3002
+    ports: ["3000:3000"]
+    volumes:
+      - duckdb-data:/data
+      - ./data/zarinpal:/data/zarinpal:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health/ready').then(r=>{if(!r.ok)process.exit(1)})",
+        ]
+      interval: 10s
+      timeout: 4s
+      retries: 12
+  liara:
+    build:
+      context: .
+      dockerfile: apps/liara-docs/Dockerfile.monorepo
+      args: { NEXT_PUBLIC_API_URL: http://localhost:3000 }
+    ports: ["3001:8080"]
+    depends_on:
+      api: { condition: service_healthy }
+  zarinpal:
+    build:
+      context: .
+      dockerfile: apps/zarin-dashboard/Dockerfile
+      args: { NEXT_PUBLIC_API_URL: http://localhost:3000 }
+    ports: ["3002:3002"]
+    depends_on:
+      api: { condition: service_healthy }
+volumes:
+  postgres-data:
+  duckdb-data:

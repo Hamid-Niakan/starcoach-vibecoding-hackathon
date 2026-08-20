@@ -1,0 +1,12 @@
+services:
+  zarinpal:
+    build:
+      context: ..
+      dockerfile: apps/zarin-dashboard/Dockerfile
+      args:
+        {
+          NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:?set NEXT_PUBLIC_API_URL}",
+        }
+    environment: { PORT: 3002 }
+    ports: ["3002:3002"]
+    restart: unless-stopped

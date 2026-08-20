@@ -20,6 +20,12 @@ html {
   min-height: 100%;
 }
 
+code, pre, [dir="ltr"] { direction: ltr; text-align: left; }
+.liara-chat-launcher { position: fixed; z-index: 50; left: 24px; bottom: 24px; display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; background: #6d5dfc; color: #fff !important; padding: 12px 18px; box-shadow: 0 14px 35px rgba(56, 44, 190, .3); text-decoration: none !important; }
+.liara-chat-page { min-height: 100vh; max-width: 980px; margin: 0 auto; padding: 24px; }
+.liara-chat-back { display: inline-block; margin-bottom: 16px; color: #5548db; }
+@media (max-width: 640px) { .liara-chat-launcher { left: 14px; bottom: 14px; } .liara-chat-launcher span:last-child { display: none; } .liara-chat-page { padding: 0; } .liara-chat-back { margin: 12px; } }
+
 p {
   line-height: 30px;
 }

@@ -7,7 +7,8 @@ const withMDX = mdx({
 const nextConfig = {
   output: "export",
   reactStrictMode: true,
-  pageExtensions: ['js', 'jsx', 'md', 'mdx'],
+  transpilePackages: ['@hackathon/contracts', '@hackathon/api-client', '@hackathon/chat-ui'],
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
   trailingSlash: true,
 };
 

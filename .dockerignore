@@ -1,0 +1,16 @@
+.git
+.github
+.agents
+.specify
+specs
+node_modules
+**/node_modules
+**/.next
+**/out
+**/dist
+.turbo
+coverage
+.env*
+data/zarinpal/*
+*.duckdb*
+*.log
