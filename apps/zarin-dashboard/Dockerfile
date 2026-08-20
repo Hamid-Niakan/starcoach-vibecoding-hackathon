@@ -7,7 +7,7 @@ COPY apps/zarin-dashboard ./apps/zarin-dashboard
 RUN pnpm install --frozen-lockfile
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-RUN pnpm --filter @hackathon/zarin-dashboard build
+RUN pnpm turbo build --filter=@hackathon/zarin-dashboard
 
 FROM node:24-bookworm-slim AS runner
 ENV NODE_ENV=production PORT=3002 HOSTNAME=0.0.0.0
