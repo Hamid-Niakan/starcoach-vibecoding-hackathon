@@ -1,0 +1,100 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات اتصال به RabbitMQ در پلتفرم Go - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات قدم به قدم اتصال به پیام‌رسان RabbitMQ در go"  />
+</Head>
+# اتصال به RabbitMQ در برنامه‌های go
+<hr className="mb-2" />
+
+برای اتصال به  RabbitMQ در برنامه‌های go، در ابتدا باید ماژول‌های مربوط به آن‌را با اجرای دستورات زیر، نصب کنید:
+
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="bash">
+        {`go get github.com/streadway/amqp
+go get github.com/joho/godotenv`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+پس از آن، کافیست تا 
+اطلاعات مربوط به RabbitMQ خود را 
+به متغیرهای محیطی برنامه خود، اضافه کنید؛ به عنوان مثال:
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="bash">
+        {`RABBITMQ_HOST=fitz-roy.liara.cloud
+RABBITMQ_PORT=32923
+RABBITMQ_USER=root
+RABBITMQ_PASS=63LVuatIrWWajE7gxSj20gHL
+`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+در نهایت، می‌توانید با استفاده از قطعه کد زیر، به RabbitMQ خود، متصل شوید:
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="go">
+        {`package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"github.com/streadway/amqp"
+	"github.com/joho/godotenv"
+)
+
+func checkRabbitMQConnection() bool {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("error in loading .env: %v", err)
+	}
+
+	rabbitHost := os.Getenv("RABBITMQ_HOST")
+	rabbitPort := os.Getenv("RABBITMQ_PORT")
+	rabbitUser := os.Getenv("RABBITMQ_USER")
+	rabbitPass := os.Getenv("RABBITMQ_PASS")
+
+	rabbitURL := fmt.Sprintf("amqp://%s:%s@%s:%s/", rabbitUser, rabbitPass, rabbitHost, rabbitPort)
+
+	conn, err := amqp.Dial(rabbitURL)
+	if err != nil {
+		fmt.Println("connection failed, error:", err)
+		return false
+	}
+	defer conn.Close()
+
+	fmt.Println("connection successful")
+	return true
+}
+
+func main() {
+	if checkRabbitMQConnection() {
+		fmt.Println("connection successful.")
+	} else {
+		fmt.Println("connection failed.")
+	}
+}
+`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+</Layout>

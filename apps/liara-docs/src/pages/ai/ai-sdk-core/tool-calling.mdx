@@ -1,0 +1,1045 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import ThemePlatformIcon from "@/components/Common/themeIcons"
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import PlatformIcon from "@/components/Common/icons";
+import HighlightTabs from "@/components/Common/HighlightTabs";
+import IconContainer from "@/components/Common/IconContainer";
+import {
+  GoContainer,
+  GoDatabase,
+  GoRocket,
+  GoServer,
+  GoMail,
+  GoGlobe,
+  GoArrowLeft,
+  GoTelescope,
+} from "react-icons/go";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات tool calling در AI SDK - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات مربوط به آشنایی با قابلیت Tool Calling در AI SDK با سرویس هوش مصنوعی لیارا"  />
+</Head>
+
+
+# قابلیت Tool Calling در AI SDK 
+<hr className="mb-2" />
+
+
+<p>
+در <Important>AI SDK</Important>، یک <Important>tool</Important> می‌تواند هم در <Important>generateText</Important> استفاده شود، هم در <Important>streamText</Important>. این کار با قرار دادن یک یا چند Tool در پارامتری به نام <Important>tools</Important>، انجام می‌شود.
+یک <Important>tool</Important>، شامل سه خصیصه (property)، می‌باشد: 
+</p>
+<div className="h-4" />
+<ul>
+<li><Important>description</Important>: توضیحات اختیاری در مورد tool که هنگام استفاده مدل از tool، می‌تواند تاثیرگذار باشد.</li>
+<li><Important>parameters</Important>: یک <a href="/ai/references/zodschema/" className="text-[#2196f3]">Zod Schema</a> یا یک <a href="/ai/references/jsonschema/" className="text-[#2196f3]">JSON Schema</a> که پارامترهای مورد نیاز tool را تعریف می‌کند. این اسکیما توسط مدل استفاده می‌شود. </li>
+<li><Important>execute</Important>: یک تابع async اختیاری که با آرگومان‌های داده شده در فراخوانی tool، صدا زده می‌شود. این خصیصه، یک مقدار از نوع <Important>RESULT</Important> ایجاد می‌کند. </li>
+</ul>
+<div className="h-4" />
+<p>
+پارامتر <Important>tools</Important> در <Important>generateText</Important> و <Important>streamText</Important>، یک آبجکت است که باید در آن، اسم toolها را به عنوان کلید تعریف کرده و خود toolها را به‌عنوان مقدار، به کلید تعریف شده، بدهید: 
+</p>
+
+<div className="h-4" />
+<div dir="ltr">
+<Highlight className="js">
+{`// npm i @ai-sdk/openai-compatible
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { generateText, tool } from 'ai';
+import { z } from 'zod';
+
+const result = await generateText({
+model: createOpenAICompatible({
+baseURL: "<baseUrl>",
+name: 'example',
+apiKey: "<LIARA_API_KEY>",
+}).chatModel("openai/gpt-4o-mini"),
+
+tools: {
+weather: tool({
+description: 'Get the weather in a location',
+parameters: z.object({
+location: z.string().describe('The location to get the weather for'),
+}),
+execute: async ({ location }) => ({
+location,
+temperature: 72 + Math.floor(Math.random() * 21) - 10,
+}),
+}),
+},
+
+prompt: 'What is the weather in San Francisco?',
+});
+`}
+</Highlight>
+</div>
+<div className="h-4" />
+
+<p>
+
+در قطعه کد فوق، در فیلد <Important>tools</Important>، یک tool به نام <Important>weather</Important> تعریف شده است که در آن، پارامتر <Important>location</Important> با 
+استفاده از ماژول <Important>zod</Important> مشخص شده است.
+وقتی که این tool فراخوانی شود. تابع تعریف شده در بخش <Important>execute</Important> فراخوانی می‌شود 
+و خروجی که بر اساس <Important>location</Important> است، یک دما را به‌صورت تصادفی (بین 62 تا 82 درجه فارنهایت)، تولید می‌کند.  
+
+</p>
+
+
+
+<div className="h-4" />
+
+
+
+<p>
+وقتی که مدل تصمیم می‌گیرد از یک tool استفاده کند؛ یک <Important>tool call</Important> ایجاد می‌کند. 
+در صورتی که فیلد <Important>execute</Important>، در یک tool تعریف شده باشد، 
+در حین <Important>tool calling</Important>، تابع آن فیلد، اجرا می‌شود. 
+در نهایت، خروجی تابع اجرا شده توسط <Important>tool calling</Important>، با استفاده از <Important>tool result object</Important>، برگردانده می‌شود.
+</p>
+<div className="h-4" />
+<p>
+شما می‌توانید با استفاده از قابلیت فراخوانی چند مرحله‌ای (multi-step calls)، خروجی یک tool را مجدداً به LLM برگردانید. 
+</p>
+
+
+<Section id="multi-step-calls" title="فراخوانی چندمرحله‌ای (با استفاده از maxSteps)" />
+
+با <Important>maxSteps</Important>، می‌توانید فراخوانی چندمرحله‌ای را در <Important>generateText</Important> و <Important>streamText</Important>، فعال کنید. زمانی که مقدار <Important>maxSteps</Important> عددی بزرگ‌تر از <Important>1</Important> باشد و مدل، یک <Important>tool call</Important> ایجاد کند؛ <Important>AI SDK</Important>، با ارسال نتیجه Tool به مدل، یک پاسخ جدید ایجاد می‌کند و این کار تا زمانی که دیگر هیچ <Important>tool call</Important> جدیدی ایجاد نشود یا حد مقدار <Important>maxSteps</Important> زده نشود؛ ادامه پیدا می‌کند.
+
+<div className="h-4" />
+<Alert variant="info">
+<p>
+برای تنظیم مقدار <Important>maxSteps</Important>، به‌جای در نظر گرفتن تعداد Toolهای موجود، تعداد مراحل پاسخ دادن به پیچیده‌ترین تسکی که قرار است به مدل، ارسال شود را، در نظر بگیرید. 
+</p>
+</Alert>
+<div className="h-4" />
+
+به‌صورت پیش‌فرض، وقتی که از <Important>generateText</Important> یا <Important>streamText</Important> استفاده می‌کنید؛ مدل یک پاسخ برای شما، 
+تولید می‌کند (که به آن <Important>generation</Important> گفته می‌شود). در این حالت، مقدار پیش‌فرض <Important>maxSteps</Important>، برابر با <Important>1</Important> است. این حالت، در زمانی که شما به داده‌های 
+خود مدل اکتفا می‌کنید، در بسیاری از موارد، قابل‌قبول است. با این حال، وقتی که 
+از Toolها استفاده می‌کنید، مدل تصمیم می‌گیرد که 
+یک پیام متنی معمولی تولید کند یا یک <Important>tool call</Important>. اگر که برای مدل، پارامتر <Important>maxSteps</Important> را تنظیم کرده باشید و مدل، یک <Important>tool call</Important> ایجاد کند؛ مرحله اول آن به‌صورت کامل انجام شده 
+و وارد مرحله دوم می‌شود. 
+
+<div className="h-4" />
+
+ممکن است که بخواهید مدل، پس از اجرای یک Tool، یک متن تولید کند یا حتی،
+نتایج Tool استفاده شده را خلاصه کند و در شکلی خوانا، به شما، تحویل دهد. در 
+بسیاری از موارد، ممکن است شما بخواهید که مدل، در یک پاسخ، از چند تا Tool مختلف، استفاده کند. 
+این، همانجایی است که مرحله دوم (و به مراتب، مراحل بعدی) در <Important>maxSteps</Important>، معنا پیدا می‌کند و نیاز به فراخوانی چندمرحله‌ای، احساس می‌شود. 
+
+<div className="h-4" />
+<h3>مثالی از فراخوانی چند مرحله‌ای با <Important>maxSteps</Important></h3>
+<div className="h-2" />
+
+مثال دو مرحله‌ای زیر را، در نظر بگیرید:
+
+
+<Step  steps={[
+{
+step: "۱",
+content: (
+<>
+<h3>مرحله اول</h3>   
+<p>
+  پرامپتِ <Important>'What is the weather in San Francisco'</Important>، به‌ مدل، ارسال می‌شود. 
+  مدل، یک <Important>tool call</Important>، ایجاد می‌کند. در نهایت، <Important>tool call</Important>، اجرا می‌شود. 
+</p>
+</>
+)
+},
+{
+step: "۲",
+content: (
+<>
+<h3>مرحله دوم</h3>   
+<p>
+  نتایج Tool، به مدل، ارسال می‌شود. مدل، با در نظر گرفتن نتایج Tool، یک پاسخ ایجاد می‌کند. 
+</p>
+</>
+)
+},
+]}
+/>
+
+قطعه کد دو مرحله فوق، در ادامه، قرار گرفته است: 
+
+<div className="h-4" />
+<div dir="ltr">
+<Highlight className="js">
+{`import { generateText, tool  } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { z } from 'zod';
+
+const model = createOpenAI({
+  baseURL: "<baseUrl>",
+  apiKey: "<LIARA_API_KEY>",
+  compatibility: "strict",
+});
+
+const { text, steps } = await generateText({
+  model: model('<model_name>'),
+ tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({
+        location: z.string().describe('The location to get the weather for'),
+      }),
+      execute: async ({ location }) => ({
+        location,
+        temperature: 72 + Math.floor(Math.random() * 21) - 10,
+      }),
+    }),
+  },
+  maxSteps: 2, // allow up to 2 steps
+  prompt: 'What is the weather in San Francisco',
+});
+`}
+</Highlight>
+</div>
+
+<Alert variant="info">
+<p>
+در قطعه کد فوق، می‌توانید به‌طور مشابه، از <Important>streamText</Important> استفاده کنید. 
+</p>
+</Alert>
+
+<Section id="steps" title="Stepها" />
+
+برای دسترسی به <Important>tool call</Important>های میانی و نتایج آن‌ها، 
+می‌توانید از ویژگی <Important>steps</Important> یا یک callback به‌نام <Important>onFinish</Important>، استفاده کنید. این ویژگی، شامل تمامی متن‌ها، <Important>tool call</Important>ها، نتایج Tool و ... در هر مرحله، می‌باشد
+<div className="h-2" />
+
+در مثال زیر، نتایج Toolها، از تمامی مراحل، استخراج می‌شود: 
+
+<div className="h-4" />
+<div dir="ltr">
+<Highlight className="js">
+{`import { generateText, tool  } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { z } from 'zod';
+
+const model = createOpenAI({
+  baseURL: "<baseUrl>",
+  apiKey: "<LIARA_API_KEY>",
+  compatibility: "strict",
+});
+
+const { steps } = await generateText({
+  model: model('<model_name>'),
+ tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({
+        location: z.string().describe('The location to get the weather for'),
+      }),
+      execute: async ({ location }) => ({
+        location,
+        temperature: 72 + Math.floor(Math.random() * 21) - 10,
+      }),
+    }),
+  },
+  maxSteps: 5, 
+  prompt: 'What is the weather in San Francisco?',
+});
+
+const allToolCalls = steps.flatMap(step => step.toolCalls);
+console.log(allToolCalls)`}
+</Highlight>
+</div>
+
+<Section id="onStepFinish" title="کال‌بک onStepFinish" />
+زمانی که از <Important>generateText</Important> یا <Important>streamText</Important> استفاده می‌کنید؛ می‌توانید یک <Important>callback</Important> از نوع <Important>onStepFinish</Important> تعریف کنید. این <Important>callback</Important> پس از پایان هر مرحله، فراخوانی می‌شود؛ یعنی 
+زمانی که تمام موارد (از جمله متن، <Important>tool call</Important>ها و نتایج tool) برای مرحله بعدی، آماده هستند. 
+در صورت وجود چند مرحله، این <Important>callback</Important>، برای هر مرحله، به‌صورت جداگانه، اجرا می‌شود.
+<div className="h-2" />
+
+به شکل زیر، می‌توانید از این <Important>callback</Important> استفاده کنید: 
+
+<div className="h-4" />
+<div dir="ltr">
+<Highlight className="js">
+{`import { generateText, tool  } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { z } from 'zod';
+
+const model = createOpenAI({
+  baseURL: "<baseUrl>",
+  apiKey: "<LIARA_API_KEY>",
+  compatibility: "strict",
+});
+
+const result = await generateText({
+ model: model('<model_name>'),
+ tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({
+        location: z.string().describe('The location to get the weather for'),
+      }),
+      execute: async ({ location }) => ({
+        location,
+        temperature: 72 + Math.floor(Math.random() * 21) - 10,
+      }),
+    }),
+  },
+  maxSteps: 5, 
+  prompt: 'What is the weather in San Francisco?',
+  onStepFinish({ text, toolCalls, toolResults, finishReason, usage }) {
+  // your own logic, e.g. for saving the chat history or recording usage
+  console.log(text, toolCalls, toolResults, finishReason, usage)
+  },
+});
+`}
+</Highlight>
+</div>
+
+<Section id="experimental_prepareStep" title="کال‌بک experimental_prepareStep" />
+
+<Alert variant="warning">
+<p>
+<Important>experimental_prepareStep</Important> در <Important>AI SDK</Important>، آزمایشی است و ممکن است در آینده، تغییر کند. این <Important>callback</Important>، فقط در <Important>generateText</Important>، موجود است. 
+</p>
+</Alert>
+<div className="h-2" />
+کال‌بک <Important>experimental_prepareStep</Important>، قبل از اجرای یک مرحله (step)، صدا زده می‌شود. 
+این <Important>callback</Important>، با پارامترهای زیر، فراخوانی می‌شود:
+
+<div className="h-2" />
+<ul>
+  <li><Important>model</Important>: مشابه همان مدل تعریف شده در <Important>generateText</Important></li>
+  <li><Important>maxSteps</Important>: مشابه همان <Important>maxSteps</Important> تعریف شده در <Important>generateText</Important></li>
+  <li><Important>stepNumber</Important>: شماره مرحله‌ای که در حال اجراست</li>
+  <li><Important>steps</Important>: شماره نشان‌دهنده مراحلی که تا الان، اجرا شده‌اند</li>
+</ul>
+<div className="h-2" />
+
+می‌توانید مانند قطعه کد زیر، از این <Important>callback</Important> استفاده کنید تا برای یک مرحله، تنظیمات مختلفی، درج کنید:
+
+<div className="h-4" />
+<div dir="ltr">
+<Highlight className="js">
+{`import { generateText, tool  } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { z } from 'zod';
+
+const model = createOpenAI({
+  baseURL: "<baseUrl>",
+  apiKey: "<LIARA_API_KEY>",
+  name: 'my-provider',
+  compatibility: "strict",
+});
+
+const result = await generateText({
+ model: model('<model_name>'),
+ tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({
+        location: z.string().describe('The location to get the weather for'),
+      }),
+      execute: async ({ location }) => ({
+        location,
+        temperature: 72 + Math.floor(Math.random() * 21) - 10,
+      }),
+    }),
+  },
+  maxSteps: 5, 
+  prompt: 'What is the weather in San Francisco?',
+  
+  experimental_prepareStep: async ({ model, stepNumber, maxSteps, steps }) => {
+    if (stepNumber === 0) {
+      return {
+        model,
+        stepNumber,
+        maxSteps,
+        steps
+      };
+    }
+
+    // when nothing is returned, the default settings are used
+  },
+});
+`}
+</Highlight>
+</div>
+
+<hr className="mb-2" />
+<Section id='response-messages' title='پیام‌های Response' />
+
+اضافه‌کردن پیام‌های تولید‌شده‌ی assistant و toolها به تاریخچه‌ی مکالمه‌تان، یک کار رایج است؛ مخصوصاً زمانی که از فراخوانی‌های چندمرحله‌ای toolها استفاده می‌کنید.
+هر دو تابع <Important>generateText</Important> و <Important>streamText</Important> دارای یک property به نام <Important>response.messages</Important> هستند که می‌توانید از آن برای افزودن پیام‌های assistant و tool به تاریخچه‌ی مکالمه، استفاده کنید. این ویژگی همچنین در کال‌بک <Important>onFinish</Important> مربوط به <Important>streamText</Important> نیز در دسترس است.
+<div className="h-4" />
+
+<Important>response.messages</Important> شامل یک آرایه از آبجکت‌ها از نوع <Important>CoreMessage</Important> است که می‌توانید آن‌ها را به تاریخچه‌ی مکالمه اضافه کنید.
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm i @ai-sdk/openai@^1 ai@^4 dotenv
+
+import { CoreMessage, generateText } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { config } from 'dotenv';
+
+config();
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+const messages: CoreMessage[] = [
+  {
+    role: 'system',
+    content: 'You are a helpful assistant.',
+  },
+  {
+    role: 'user',
+    content: 'Hello! Can you tell me a fun fact about space?',
+  },
+];
+
+const { response } = await generateText({
+  model: my_model('openai/gpt-4o-mini'),
+  messages,
+});
+
+messages.push(...response.messages); // streamText: ...((await response).messages)
+console.log(messages)`}
+    </Highlight>
+</div>
+
+
+<hr className="mb-2" />
+<Section id='tool-choice' title='انتخاب Tool' />
+
+شما می‌توانید با تنظیم <Important>toolChoice</Important> بر زمان انتخاب یک tool تاثیر بگذارید. این تنظیم از مقادیر زیر، پشتیبانی می‌کند: 
+
+<div className="h-2" />
+<ul>
+<li><Important>auto</Important> (پیش‌فرض): مدل می‌تواند تصمیم بگیرد که آیا یک tool فراخوانی شود یا نه و اینکه کدام tool فراخوانی شود</li>
+<div className="h-1" />
+<li><Important>required</Important>: تابع باید یک tool را فراخوانی کند، انتخاب اینکه کدام tool فراخوانی شود، به عهده‌ی مدل است</li>
+<div className="h-1" />
+<li><Important>none</Important>: مدل نباید فراخوانی tool داشته باشد</li>
+<div className="h-1" />
+<li><Important>\{ type: 'tool', toolName: string (typed) \}</Important>: مدل باید tool مشخص‌شده را فراخوانی کند</li>
+<div className="h-1" />
+</ul>
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm i @ai-sdk/openai@^1 ai@^4 dotenv zod
+
+import { generateText, tool } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { config } from 'dotenv';
+import { z } from 'zod';
+
+config();
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+const result = await generateText({
+  model: my_model('openai/gpt-4o-mini'),
+  tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({
+        location: z.string().describe('The location to get the weather for'),
+      }),
+      execute: async ({ location }) => ({
+        location,
+        temperature: 72 + Math.floor(Math.random() * 21) - 10,
+      }),
+    }),
+  },
+  toolChoice: 'required', // force the model to call a tool
+  prompt: 'What is the weather in Tehran?',
+});
+
+`}
+    </Highlight>
+</div>
+
+<hr className="mb-2" />
+<Section id='tool-execution-options' title='گزینه‌های اجرایی Tool' />
+
+زمانی که toolها فراخوانی می‌شوند، یک سری گزینه‌های اضافی تحت عنوان پارامتر دوم دریافت می‌کنند.
+
+<Section id='tool-call-id' title='Tool Call ID' />
+
+آیدی فراخوانی tool به tool execution فوروارد می‌شود. 
+شما می‌توانید از این آیدی استفاده کنید؛ مثلاً هنگام ارسال اطلاعات مرتبط با tool-call در استریم داده‌ها.
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm i @ai-sdk/openai@^1 ai@^4 dotenv zod
+
+import { generateText, tool } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { config } from 'dotenv';
+import { z } from 'zod';
+
+config();
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+const result = await generateText({
+  model: my_model('openai/gpt-4o-mini'),
+  tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({
+        location: z.string().describe('The location to get the weather for'),
+      }),
+      execute: async ({ location }, { toolCallId }) => {
+        console.log("Weather tool invoked with ID:", toolCallId, "for location:", location);
+        return {
+          location,
+          temperature: 72 + Math.floor(Math.random() * 21) - 10,
+          toolCallId
+        };
+      },
+    }),
+  },
+  toolChoice: 'required', // force the model to call a tool
+  prompt: 'What is the weather in Tehran?',
+});`}
+    </Highlight>
+</div>
+
+<Section id='messages' title='Messages' />
+
+پیام‌هایی که مدل ارسال می‌شوند تا پاسخی از سمت مدل دریافت کنند که شامل فراخوانی tool است، به tool execution فوروارد می‌شوند. 
+شما می‌توانید به این پیام‌ها از طریق پارامتر دوم تابع <Important>execute</Important> دسترسی داشته باشید.
+در فراخوانی‌های چندمرحله‌ای، این پیام‌ها شامل متن، فراخوانی toolها و نتایج toolها از تمام مراحل قبلی هستند.
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm i @ai-sdk/openai@^1 ai@^4 dotenv zod
+
+import { generateText, tool } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { config } from 'dotenv';
+import { z } from 'zod';
+
+config();
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+const result = await generateText({
+  model: my_model('openai/gpt-4o-mini'),
+  tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({
+        location: z.string().describe('The location to get the weather for'),
+      }),
+      execute: async ({ location }, { messages }) => {
+        console.log("the user message:", messages);
+        return {
+          location,
+          temperature: 72 + Math.floor(Math.random() * 21) - 10,
+          messages
+        };
+      },
+    }),
+  },
+  toolChoice: 'required', // force the model to call a tool
+  prompt: 'What is the weather in Tehran?',
+});`}
+    </Highlight>
+</div>
+
+<hr className="mb-2" />
+<Section id='types' title='Typeها' />
+
+ماژولارسازی کد معمولاً نیازمند تعریف typeها برای اطمینان از type safety و قابلیت استفاده‌ مجدد (reusability) است. برای پشتیبانی از این موضوع، AI SDK چندین helper type برای toolها، فراخوانی toolها و نتایج toolها فراهم می‌کند.
+<div className="h-4" />
+
+شما می‌توانید از این قابلیت برای تعریف دقیق type متغیرها، پارامترهای توابع و typeهای بازگشتی در بخش‌هایی از کد که مستقیماً با <Important>streamText</Important> یا <Important>generateText</Important> در ارتباط نیستند، استفاده کنید.
+<div className="h-4" />
+
+هر فراخوانی tool با ساختار <Important>&lt;ToolCall&lt;NAME extends string, ARGS</Important> تعریف type می‌شود. 
+این تعریف به tool فراخوانی‌شده نیز بستگی دارد. به‌طور مشابه، نتایج tool با ساختار <Important>&lt;ToolResult&lt;NAME extends string, ARGS, RESULT</Important> تعریف می‌شوند:
+<div className="h-4" />
+
+toolها در <Important>streamText</Important> و <Important>generateText</Important> به صورت یک <Important>ToolSet</Important> تعریف می‌شوند. برای استنتاج typeها، از helperهای <Important>&lt;ToolCallUnion&lt;TOOLS extends ToolSet</Important> و <Important>&lt;ToolResultUnion&lt;TOOLS extends ToolSet</Important>استفاده می‌شود که این دو، برای استخراج typeهای مربوط به فراخوانی tool و نتایج tool از درون toolها کاربرد دارند.
+
+<div className="h-4" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm i @ai-sdk/openai@^1 ai@^4 dotenv zod
+
+import { ToolCallUnion, ToolResultUnion, generateText, tool } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { config } from 'dotenv';
+import { z } from 'zod';
+
+config();
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+const myToolSet = {
+  firstTool: tool({
+    description: 'Greets the user',
+    parameters: z.object({ name: z.string() }),
+    execute: async ({ name }) => \`Hello, \${name}!\`,
+  }),
+  secondTool: tool({
+    description: 'Tells the user their age',
+    parameters: z.object({ age: z.number() }),
+    execute: async ({ age }) => \`You are \${age} years old!\`,
+  }),
+};
+
+type MyToolCall = ToolCallUnion<typeof myToolSet>;
+type MyToolResult = ToolResultUnion<typeof myToolSet>;
+
+async function generateSomething(prompt: string): Promise<{
+  text: string;
+  toolCalls: Array<MyToolCall>; // typed tool calls
+  toolResults: Array<MyToolResult>; // typed tool results
+}> {
+  return generateText({
+    model: my_model('openai/gpt-4o-mini'),
+    tools: myToolSet,
+    prompt,
+    maxSteps: 2
+  });
+}
+
+const res = await generateSomething('Hello I am Arash and 24 years old.');
+console.log(res);`}
+    </Highlight>
+</div>
+
+<hr className="mb-2" />
+<Section id='handling-errors' title='مدیریت خطاها' />
+
+AI SDK سه خطای مرتبط با فراخوانی tool دارد: 
+
+<div className="h-2" />
+<ul>
+<li><Important>NoSuchToolError</Important>: مدل سعی می‌کند یک tool را فراخوانی کند که در آبجکت toolها اصلاً تعریف نشده است</li>
+<div className="h-1" />
+<li><Important>InvalidToolArgumentsError</Important>: مدل یک tool را با آرگومان‌هایی فراخوانی می‌کند که با پارامترهای tool مطابقت ندارند</li>
+<div className="h-1" />
+<li><Important>ToolExecutionError</Important>: یک خطا که در حین tool execution رخ می‌دهد</li>
+<div className="h-1" />
+<li><Important>ToolCallRepairError</Important>: یک خطا که در حین tool call repair رخ می‌دهد</li>
+</ul>
+
+<Section id='generatetext' title='generateText' />
+
+تابع <Important>generateText</Important> خطاها را throw می‌کند و می‌توان آن‌ها را با استفاده از بلوک <Important>catch</Important>/<Important>try</Important> مدیریت کرد.
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm i @ai-sdk/openai@^1 ai@^4 dotenv zod
+
+import { generateText, tool, NoSuchToolError, InvalidToolArgumentsError, ToolExecutionError } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { config } from 'dotenv';
+import { z } from 'zod';
+
+config();
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+try {
+  const result = await generateText({
+    model: my_model('openai/gpt-4o-mini'),
+    tools: {
+      weather: tool({
+        description: 'Get the weather in a location',
+        parameters: z.object({
+          location: z.string().describe('The location to get the weather for'),
+        }),
+        execute: async ({ location }) => {
+          return {
+            location,
+            temperature: 72 + Math.floor(Math.random() * 21) - 10,
+          };
+        },
+      }),
+    },
+    prompt: 'What is the weather in Tehran?',
+  });
+} catch (error) {
+  if (NoSuchToolError.isInstance(error)) {
+    // handle the no such tool error
+  } else if (InvalidToolArgumentsError.isInstance(error)) {
+    // handle the invalid tool arguments error
+  } else if (ToolExecutionError.isInstance(error)) {
+    // handle the tool execution error
+  } else {
+    // handle other errors
+  }
+}`}
+    </Highlight>
+</div>
+
+<Section id='streamtext' title='streamText' />
+
+تابع <Important>streamText</Important> خطاها را به عنوان بخشی از استریم کامل ارسال می‌کند. بخش‌های خطا شامل object خطا هستند.
+<div className="h-2" />
+
+هنگام استفاده از <Important>toDataStreamResponse</Important>، می‌توانید یک تابع <Important>getErrorMessage</Important> تعریف کنید تا پیام خطا را از بخش خطا استخراج کرده و به عنوان بخشی از پاسخ استریم داده منتقل کند.
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm i @ai-sdk/openai@^1 ai@^4 dotenv zod
+
+import { streamText, tool, NoSuchToolError, InvalidToolArgumentsError, ToolExecutionError } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { config } from 'dotenv';
+import { z } from 'zod';
+
+config();
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+async function main() {
+  const result = await streamText({
+    model: my_model('openai/gpt-4o-mini'),
+    tools: {
+      weather: tool({
+        description: 'Get the weather in a location',
+        parameters: z.object({
+          location: z.string().describe('The location to get the weather for'),
+        }),
+        execute: async ({ location }) => {
+          return {
+            location,
+            temperature: 72 + Math.floor(Math.random() * 21) - 10,
+          };
+        },
+      }),
+    },
+    prompt: 'What is the weather in Tehran?',
+  });
+
+  const response = result.toDataStreamResponse({
+    getErrorMessage: error => {
+      if (NoSuchToolError.isInstance(error)) {
+        return 'The model tried to call an unknown tool.';
+      } else if (InvalidToolArgumentsError.isInstance(error)) {
+        return 'The model called a tool with invalid arguments.';
+      } else if (ToolExecutionError.isInstance(error)) {
+        return 'An error occurred during tool execution.';
+      } else {
+        return 'An unknown error occurred.';
+      }
+    },
+  });
+}
+`}
+    </Highlight>
+</div>
+
+<hr className="mb-2" />
+<Section id='tool-call-repair' title='Tool Call Repair' />
+
+<Alert variant="warning">
+<p>
+قابلیت tool call repair آزمایشی است و ممکن است در آینده تغییر کند. 
+</p>
+</Alert>
+
+مدل‌ها گاهی اوقات در تولید فراخوانی معتبر tool با مشکل مواجه می‌شوند، مخصوصاً وقتی که 
+پارامترها پیچیده هستند یا مدل کوچک‌تر است. 
+شما می‌توانید از تابع <Important>experimental_repairToolCall</Important> برای تلاش در جهت اصلاح فراخوانی تابع با یک تابع شخصی‌سازی شده، اقدام کنید. 
+<div className="h-2" />
+
+شما می‌توانید از استراتژی‌های متفاوتی برای اصلاح فراخوانی tool استفاده کنید: 
+
+<div className="h-2" />
+<ul>
+<li>از یک مدل با خروجی‌های ساختاریافته برای تولید آرگومان‌ها، استفاده کنید</li>
+<li>پیام‌ها، پرامپت‌های سیستمی و اسکیمای tool را به یک مدل قوی‌تر بفرستید تا آرگومان‌ها را تولید کند</li>
+<li>دستورالعمل‌های اصلاح خاص‌تری بر اساس اینکه چه toolای فراخوانی شده است، تهیه کنید</li>
+</ul>
+
+<Section id='example-use-a-model-with-structured-outputs-for-repair' title='مثال: استفاده از یک مدل با خروجی‌های ساختاریافته برای اصلاح' />
+
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm i @ai-sdk/openai@^1 ai@^4 dotenv zod
+
+import { generateObject, generateText, NoSuchToolError, tool } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { config } from 'dotenv';
+import { z } from 'zod';
+
+config();
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+
+const result = await generateText({
+  model: my_model('openai/gpt-4o-mini'),
+  tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({
+        location: z.string().describe('The location to get the weather for'),
+      }),
+      execute: async ({ location }) => {
+        return {
+          location,
+          temperature: 72 + Math.floor(Math.random() * 21) - 10,
+        };
+      },
+    }),
+  },
+  prompt: 'What is the weather in Tehran?',
+
+   experimental_repairToolCall: async ({
+    toolCall,
+    tools,
+    parameterSchema,
+    error,
+  }) => {
+    if (NoSuchToolError.isInstance(error)) {
+      return null; // do not attempt to fix invalid tool names
+    }
+
+    const tool = tools[toolCall.toolName as keyof typeof tools];
+
+    const { object: repairedArgs } = await generateObject({
+      model: my_model('openai/gpt-4.1', { structuredOutputs: true }),
+      schema: tool.parameters,
+
+      prompt: [
+        \`The model tried to call the tool "\${toolCall.toolName}"\` +
+          \` with the following arguments:\`,
+        JSON.stringify(toolCall.args),
+        \`The tool accepts the following schema:\`,
+        JSON.stringify(parameterSchema(toolCall)),
+        'Please fix the arguments.',
+      ].join('\\n'),
+    });
+
+    return { ...toolCall, args: JSON.stringify(repairedArgs) };
+  },
+});
+`}
+    </Highlight>
+</div>
+
+<Section id='example-use-the-re-ask-strategy-for-repair' title='مثال: استفاده از استراتژی re-ask برای اصلاح' />
+
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm i @ai-sdk/openai@^1 ai@^4 dotenv zod
+
+import { generateText, tool } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { config } from 'dotenv';
+import { z } from 'zod';
+
+config();
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+
+const result = await generateText({
+  model: my_model('openai/gpt-4o-mini'),
+  tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({
+        location: z.string().describe('The location to get the weather for'),
+      }),
+      execute: async ({ location }) => {
+        return {
+          location,
+          temperature: 72 + Math.floor(Math.random() * 21) - 10,
+        };
+      },
+    }),
+  },
+  prompt: 'What is the weather in Tehran?',
+
+ experimental_repairToolCall: async ({
+    toolCall,
+    tools,
+    error,
+    messages,
+    system,
+  }) => {
+    const result = await generateText({
+      model: my_model('openai/gpt-4o-mini'),
+      system,
+      messages: [
+        ...messages,
+        {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool-call',
+              toolCallId: toolCall.toolCallId,
+              toolName: toolCall.toolName,
+              args: toolCall.args,
+            },
+          ],
+        },
+        {
+          role: 'tool' as const,
+          content: [
+            {
+              type: 'tool-result',
+              toolCallId: toolCall.toolCallId,
+              toolName: toolCall.toolName,
+              result: error.message,
+            },
+          ],
+        },
+      ],
+      tools,
+    });
+
+    const newToolCall = result.toolCalls.find(
+      newToolCall => newToolCall.toolName === toolCall.toolName,
+    );
+
+    return newToolCall != null
+      ? {
+          toolCallType: 'function' as const,
+          toolCallId: toolCall.toolCallId,
+          toolName: toolCall.toolName,
+          args: JSON.stringify(newToolCall.args),
+        }
+      : null;
+  },
+});`}
+    </Highlight>
+</div>
+
+<hr className="mb-2" />
+<Section id='active-tools' title='Active Tools' />
+
+<Alert variant="warning">
+<p>
+قابلیت <Important>activeTools</Important> آزمایشی است و ممکن است در آینده تغییر کند. 
+</p>
+</Alert>
+<div className="h-2" />
+
+مدل‌ها بسته به نوع‌شان، فقط می‌توانند تعداد محدودی از toolها را در یک زمان، مدیریت کنند. 
+AI SDK برای مجاز کردن static typing در هنگام استفاده از تعداد زیادی tool و در عین حال محدود کردن toolهای در دسترس برای مدل، قابلیتی به نام <Important>experimental_activeTools</Important> را ارائه می‌دهد. 
+<div className="h-2" />
+
+این ویژگی یک آرایه از نام toolهایی است که در حال حاضر فعال هستند. به‌صورت پیش‌فرض، مقدار آن <Important>undefined</Important> است و در این حالت تمام toolها فعال خواهند بود.
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`// npm i @ai-sdk/openai@^1 ai@^4 dotenv zod
+
+import { generateText, tool } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { config } from 'dotenv';
+import { z } from 'zod';
+
+config();
+const my_model = createOpenAI({
+  baseURL: process.env.BASE_URL!,
+  apiKey: process.env.LIARA_API_KEY!,
+});
+
+const myToolSet = {
+  firstTool: tool({
+    description: 'Greets the user',
+    parameters: z.object({ name: z.string() }),
+    execute: async ({ name }) => \`Hello, \${name}!\`,
+  }),
+  secondTool: tool({
+    description: 'Tells the user their age',
+    parameters: z.object({ age: z.number() }),
+    execute: async ({ age }) => \`You are \${age} years old!\`,
+  }),
+};
+
+const result = await generateText({
+  model: my_model('openai/gpt-4o-mini'),
+  tools: myToolSet,
+  experimental_activeTools: ['firstTool'],
+  prompt: "I am Ali and 24 years old"
+  
+});
+
+console.log(result)`}
+    </Highlight>
+</div>
+<hr className="mb-2" />
+
+<Section id='extracting-tools' title='استخراج Toolها' />
+
+هنگامی که تعداد Toolهای شما زیاد می‌شود، ممکن است بخواهید آن‌ها را در فایل‌های جداگانه قرار دهید. تابع tool helper در این زمینه بسیار مهم است، زیرا این اطمینان را به شما می‌دهد که type inference به‌درستی انجام شده است.
+
+<div className="h-4" />
+به عنوان مثال، فرض کنید که قصد دارید 
+یک Tool برای اعلام وضعیت آب و هوا در برنامه خود تعریف کنید. 
+تنها کافیست تا یک دایرکتوری برای toolهای خود به نام <Important>tools</Important> ایجاد کنید، درون آن یک فایل به نام 
+<Important>weather-tool.ts</Important> بسازید و کدی مشابه قطعه کد زیر را، درون آن 
+قرار دهید: 
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`import { tool } from 'ai';
+import { z } from 'zod';
+
+// the \`tool\` helper function ensures correct type inference:
+export const weatherTool = tool({
+  description: 'Get the weather in a location',
+  parameters: z.object({
+    location: z.string().describe('The location to get the weather for'),
+  }),
+  execute: async ({ location }) => ({
+    location,
+    temperature: 72 + Math.floor(Math.random() * 21) - 10,
+  }),
+});
+`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+
+</Layout>

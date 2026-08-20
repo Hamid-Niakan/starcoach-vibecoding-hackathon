@@ -1,0 +1,55 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import PlatformIcon from "@/components/Common/icons";
+import {
+    GoArrowLeft,
+} from "react-icons/go";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات مشاهده دیسک‌های سرور مجازی ابری - لیارا</title>
+
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات مربوط به نحوه مشاهده دیسک‌های سرور مجازی در کنسول لیارا"  />
+</Head>
+# مشاهده دیسک‌های سرور مجازی ابری در کنسول
+
+
+<hr className="mb-2" />
+
+شما می‌توانید در کنسول لیارا، بر روی سرور مجازی ابری مد نظر خود کلیک کرده و وارد بخش **دیسک‌ها** شوید. در این بخش، تمامی دیسک‌های موجود برای سرور مجازی ابری شما نمایش داده می‌شوند. 
+
+
+<div className="h-4" />
+<img src="https://media.liara.ir/vps/see-cloud-server-disks-using-console.png" alt="مشاهده دیسک‌های سرور مجازی ابری" />
+<div className="h-4" />
+
+<Section id="what-is-primary-disk" title="دیسک اولیه چیست؟" />
+
+دیسک اصلی که سیستم‌عامل روی آن نصب شده است و به عنوان دیسک بوت مورد استفاده قرار می‌گیرد، دیسک اولیه یا Primary Disk نامیده می‌شود. این دیسک
+معمولاً اولین دیسک متصل به سرور است و در مسیر <Important>dev/sda/</Important> نمایش داده می‌شود.
+
+<Section id="what-is-secondary-disk" title="دیسک ثانویه چیست؟" />
+
+دیسک ثانویه (Secondary Disk) در لینوکس به هر دیسکی گفته می‌شود که علاوه بر دیسک اصلی به سیستم متصل شده و معمولاً برای ذخیره‌سازی داده‌های اضافی، بکاپ یا دیتابیس‌ها استفاده می‌شود. این دیسک‌ها در مسیرهایی مانند <Important>dev/sdb/</Important> یا <Important>dev/sdc/</Important> و ... نمایش داده می‌شوند.
+
+
+
+
+
+
+
+
+
+
+</Layout>

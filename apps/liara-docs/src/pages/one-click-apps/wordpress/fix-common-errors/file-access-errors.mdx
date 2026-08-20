@@ -1,0 +1,47 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+import {GoArrowLeft,} from "react-icons/go";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات رفع خطاهای مربوط به دسترسی فایل در WordPress  - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات مربوط به رفع خطاهای مربوط به دسترسی فایل در WordPress در لیارا"  />
+</Head>
+# رفع خطاهای مربوط به دسترسی فایل
+<hr className="mb-2" />
+
+<Tabs 
+  tabs={["Apache",]} 
+  content={[
+  <>
+
+  </>
+  ]}
+
+/>
+
+
+برای رفع خطای File Permission، در برنامه وردپرسی خود،
+دستورهای زیر را در <a href="/paas/details/console-shell" className="text-[#2196f3] ">خط فرمان</a> برنامه خود، اجرا کنید:
+<div className="h-4" />
+<div dir='ltr'>
+    <Highlight className="bash">
+      {`chown www-data:www-data -R *;
+find . -type d -exec chmod 755 {} \\;
+find . -type f -exec chmod 644 {} \\;`}
+    </Highlight>
+</div>
+
+</Layout>

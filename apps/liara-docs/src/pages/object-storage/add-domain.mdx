@@ -1,0 +1,64 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import PlatformIcon from "@/components/Common/icons";
+import {
+    GoArrowLeft,
+} from "react-icons/go";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات  اضافه کردن دامنه به Object Storage - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات نحوه اضافه کردن دامنه به Object Storage"  />
+</Head>
+# اضافه کردن دامنه خریداری شده به باکت
+
+<hr className="mb-2" />
+
+برای اتصال دامنه به باکت مورد نظرتان در لیارا باید وارد باکت شوید و سپس روی گزینه **دامنه‌ها**، کلیک کنید. در ادامه باید روی گزینه‌ی **افزودن دامنه** کلیک کرده و نام دامنه‌تان (مثلاً: mydomain.com) را وارد کنید. درنهایت با کلیک روی گزینه‌ی **ایجاد دامنه**، دامنه شما به باکت اضافه می‌شود و همچنین به صفحه‌ی مدیریت دامنه هدایت می‌شوید:
+
+<div className="h-4" />
+    <video
+      src="https://media.liara.ir/object-storage/add-domain-to-bucket.mp4"
+      controls="controls"
+      className="block w-full"
+      width="100%"
+    />
+<div className="h-4" />
+
+در این مرحله باید رکوردهای DNS درخواست شده را با استفاده از یک سرویس DNS مانند <a href="https://www.cloudflare.com/" className="text-[#2196f3] ">Cloudflare</a> بر روی دامنه‌تان تنظیم کنید. 
+درنهایت پس از ثبت رکوردهای DNS می‌توانید بر روی گزینه‌ی  **بررسی وضعیت رکوردها** کلیک کنید و با تغییر تیک‌های قرمز رنگ به سبز، یعنی اتصال دامنه‌ی شما به لیارا با موفقیت صورت گرفته است:
+
+<div className="h-4" />
+<img src="https://media.liara.ir/docs/activated-domain.png" alt="activated-domain"/>
+<div className="h-4" />
+
+در حین ثبت دامنه، نکات زیر را حتماً در نظر بگیرید:
+<ul>
+    <li>درصورت استفاده از CDN باید گواهی SSL را نیز از سرویس‌دهنده‌ی DNS فعلی‌تان تهیه کنید.</li>
+    <li>درصورت استفاده از CDN می‌توانید تیک قرمز رنگ و خطای تنظیم نشدن رکوردها را نادیده بگیرید.</li>
+</ul>
+
+<div className="h-2" />
+<Alert variant="success">
+<p>
+ شما می‌توانید برای مدیریت دامنه خود، از <a href="/dns-management-system/about" className="text-[#2196f3] ">سرویس DNS لیارا</a> استفاده کنید تا رکوردها به صورت خودکار به آن اضافه شوند.
+</p>
+</Alert>
+<Alert variant="success">
+<p>
+همچنین بخوانید: <a href="/paas/domains/enable-ssl" className="text-[#2196f3] ">تهیه گواهی SSL برای دامنه</a>
+</p>
+</Alert>
+
+</Layout>

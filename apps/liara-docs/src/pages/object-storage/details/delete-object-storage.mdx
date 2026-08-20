@@ -1,0 +1,53 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import PlatformIcon from "@/components/Common/icons";
+import {
+    GoArrowLeft,
+} from "react-icons/go";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات حذف فضای ذخیره‌سازی ابری - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات مربوط به نحوه حذف یک فضای ذخیره‌سازی ابری در لیارا"  />
+</Head>
+# حذف باکت
+
+<hr className="mb-2" />
+
+برای حذف Object Storage، در ابتدا بایستی طبق <a href="../how-tos/delete-key" className="text-[#2196f3] ">مستندات حذف کلید</a>، کلیدهای متصل به باکت مدنظرتان را حذف کنید.
+یا اینکه می‌توانید بر روی گزینه **ویرایش** یک کلید کلیک کرده و باکت مورد نظرتان را از آن کلید، جدا کنید.
+
+<div className="h-4" />
+
+ سپس، کافیست تا در منوی **ذخیره‌سازی ابری** بر روی سه‌نقطه باکت مدنظرتان کلیک کنید،
+سپس؛ بر روی گزینه **حذف باکت** کلیک کرده 
+در نهایت، کافیست تا شناسه باکت خود را در فیلد خواسته‌شده، وارد کنید و بر روی گزینه **حذف باکت** کلیک کنید تا Object Storage‌تان حذف شود:
+
+<div className="h-4" />
+    <video
+      src="https://media.liara.ir/object-storage/delete-bucket.mp4"
+      controls="controls"
+      className="block w-full"
+      width="100%"
+    />
+<div className="h-4" />
+
+<Alert variant="warning">
+<p>
+با حذف فضای ذخیره‌سازی ابری، تمامی اطلاعات درون Object Storage‌تان
+<b>برای همیشه</b> پاک خواهد شد و امکان بازیابی آن‌ها، در لیارا، وجود نخواهد داشت.
+</p>
+</Alert>
+
+</Layout>

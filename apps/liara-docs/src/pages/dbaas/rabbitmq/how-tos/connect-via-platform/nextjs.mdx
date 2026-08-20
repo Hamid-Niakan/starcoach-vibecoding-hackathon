@@ -1,0 +1,158 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات اتصال به RabbitMQ در پلتفرم NextJS - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات قدم به قدم اتصال به پیام‌رسان RabbitMQ در فریم‌ورک NextJS"  />
+</Head>
+# اتصال به RabbitMQ در برنامه‌های NextJS
+<hr className="mb-2" />
+        
+
+<Tabs 
+    tabs={["Pages Router", "App Router"]} 
+    content={[
+        <>
+            <p>
+            روش‌ها و کتابخانه‌های مختلفی برای اتصال به RabbitMQ در NextJS وجود دارد. یکی از این راه‌ها، استفاده از پکیج <Important>amqplib</Important> است که در ابتدا، با اجرای دستور زیر، باید آن را نصب کنید:
+            </p>
+            <div className="h-2" />
+            <div dir='ltr'>
+            <Highlight className="bash">
+                {`npm install amqplib`}
+            </Highlight>
+            </div>
+            <div className="h-2" />
+            <p>
+پس از آن، کافیست تا 
+اطلاعات مربوط به دیتابیس خود را 
+به متغیرهای محیطی برنامه خود، اضافه کنید (در حالت development، در فایل <Important>env.local.</Important> و در حالت production، در فایل <Important>env.production.</Important>)؛ به عنوان مثال:
+            </p>
+            <div className="h-2" />
+            <div dir='ltr'>
+            <Highlight className="bash">
+                {`RABBITMQ_HOST=fitz-roy.liara.cloud
+RABBITMQ_PORT=32923
+RABBITMQ_USER=root
+RABBITMQ_PASS=63LVuatIrWWajE7gxSj20gHL
+`}
+            </Highlight>
+            </div>
+            <div className="h-2" />
+            <p>
+              در ادامه، کافیست تا در مسیر <Important>pages/api</Important> (یا <Important>src/pages/api</Important>) یک فایل جدید به نام <Important>check-rabbitmq.js</Important> ایجاد کنید و قطعه کد زیر را، در آن، قرار دهید:
+            </p>
+            <div dir='ltr'>
+            <div className="h-2" />
+            <Highlight className="js">
+                {`import amqp from 'amqplib';
+
+const rabbitConfig = {
+  protocol: 'amqp',
+  hostname: process.env.RABBITMQ_HOST,
+  port: parseInt(process.env.RABBITMQ_PORT, 10),
+  username: process.env.RABBITMQ_USER,
+  password: process.env.RABBITMQ_PASS,
+};
+
+export default async function handler(req, res) {
+  try {
+    const connection = await amqp.connect(rabbitConfig);
+    await connection.close();
+    res.status(200).json({ message: 'connection successful' });
+  } catch (error) {
+    res.status(500).json({ message: 'connection failed!', error: error.message });
+  }
+}
+`}
+            </Highlight>
+            </div>
+            <div className="h-2" />
+            <p>
+                تمامی کارها، انجام شده است و شما می‌توانید با مراجعه به صفحه <Important>api/check-rabbitmq/</Important>، اتصال خود به RabbitMQ را، بررسی کنید.
+            </p>
+
+        </>,
+        <>
+            <p>
+            روش‌ها و کتابخانه‌های مختلفی برای اتصال به RabbitMQ در NextJS وجود دارد. یکی از این راه‌ها، استفاده از پکیج <Important>amqplib</Important> است که در ابتدا، با اجرای دستور زیر، باید آن را نصب کنید:
+            </p>
+            <div className="h-2" />
+            <div dir='ltr'>
+            <Highlight className="bash">
+                {`npm install amqplib`}
+            </Highlight>
+            </div>
+            <div className="h-2" />
+            <p>
+پس از آن، کافیست تا 
+اطلاعات مربوط به دیتابیس خود را 
+به متغیرهای محیطی برنامه خود، اضافه کنید (در حالت development، در فایل <Important>env.local.</Important> و در حالت production، در فایل <Important>env.production.</Important>)؛ به عنوان مثال:
+            </p>
+            <div className="h-2" />
+            <div dir='ltr'>
+            <Highlight className="bash">
+                {`RABBITMQ_HOST=fitz-roy.liara.cloud
+RABBITMQ_PORT=32923
+RABBITMQ_USER=root
+RABBITMQ_PASS=63LVuatIrWWajE7gxSj20gHL
+`}
+            </Highlight>
+            </div>
+            <div className="h-2" />
+            <p>
+              در ادامه، کافیست تا در مسیر <Important>app/api</Important> (یا <Important>src/app/api</Important>) یک پوشه و یک فایل جدید به نام <Important>check-rabbitmq/route.js</Important> ایجاد کنید و قطعه کد زیر را، در آن، قرار دهید:
+            </p>
+            <div dir='ltr'>
+            <div className="h-2" />
+            <Highlight className="js">
+                {`import amqp from 'amqplib';
+
+const rabbitConfig = {
+  protocol: 'amqp',
+  hostname: process.env.RABBITMQ_HOST,
+  port: parseInt(process.env.RABBITMQ_PORT, 10),
+  username: process.env.RABBITMQ_USER,
+  password: process.env.RABBITMQ_PASS,
+};
+
+export async function GET() {
+  try {
+    const connection = await amqp.connect(rabbitConfig);
+    await connection.close();
+    return new Response(JSON.stringify({ message: 'connection successful' }), {
+      status: 200,
+    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ message: 'connection failed', error: error.message }),
+      { status: 500 }
+    );
+  }
+}
+`}
+            </Highlight>
+            </div>
+            <div className="h-2" />
+            <p>
+                تمامی کارها، انجام شده است و شما می‌توانید با مراجعه به صفحه <Important>api/check-rabbitmq/</Important>، اتصال خود به RabbitMQ را، بررسی کنید.
+            </p>
+ 
+        </>
+]} 
+/>
+
+</Layout>

@@ -1,0 +1,85 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات اتصال به RabbitMQ در پلتفرم NodeJS - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات قدم به قدم اتصال به پیام‌رسان RabbitMQ در NodeJS"  />
+</Head>
+
+# اتصال به RabbitMQ در برنامه‌های NodeJS
+<hr className="mb-2" />
+
+روش‌ها و کتابخانه‌های مختلفی برای اتصال به RabbitMQ در NodeJS وجود دارد. یکی از این راه‌ها، استفاده از پکیج <Important>amqplib</Important> است که در ابتدا، با اجرای دستور زیر، باید آن را نصب کنید:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="bash">
+        {`npm install amqplib`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+پس از آن، کافیست تا 
+اطلاعات مربوط به دیتابیس خود را 
+به متغیرهای محیطی برنامه خود، اضافه کنید؛ به عنوان مثال:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="bash">
+        {`RABBITMQ_HOST=fitz-roy.liara.cloud
+RABBITMQ_PORT=32923
+RABBITMQ_USER=root
+RABBITMQ_PASS=63LVuatIrWWajE7gxSj20gHL
+`}
+    </Highlight>
+</div>
+<div className="h-2" />
+
+اکنون، می‌توانید متغیرهای محیطی را در برنامه خود خوانده و به RabbitMQ متصل شوید؛ در ادامه، یک قطعه کد مثال برای
+اتصال به RabbitMQ
+برای شما، قرار گرفته است:
+
+<div className="h-2" />
+<div dir='ltr'>
+    <Highlight className="js">
+        {`const amqp = require('amqplib');
+// require('dotenv').config(); // in local, run \`npm install dotenv\` and uncomment this line if needed
+
+const rabbitConfig = {
+    protocol: 'amqp',
+    hostname: process.env.RABBITMQ_HOST,
+    port: parseInt(process.env.RABBITMQ_PORT, 10),
+    username: process.env.RABBITMQ_USER,
+    password: process.env.RABBITMQ_PASS,
+  };
+
+async function checkRabbitMQConnection() {
+  try {
+    const connection = await amqp.connect(rabbitConfig);
+    console.log('connection successful');
+    await connection.close(); 
+  } catch (error) {
+    console.error('connection failed! error:', error.message);
+  }
+}
+
+checkRabbitMQConnection();
+`}
+    </Highlight>
+</div>
+
+
+</Layout>

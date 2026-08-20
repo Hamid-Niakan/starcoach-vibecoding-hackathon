@@ -1,0 +1,53 @@
+<p align="center">
+  <img src="https://media.liara.ir/logos/download.svg" alt="Liara Logo" />
+</p>
+
+---
+
+This is the **official** documentation of [Liara](https://liara.ir), which is also available at [docs.liara.ir](https://docs.liara.ir). You can have your own documentation by following the steps below:
+
+1. Clone the repository:
+```
+git clone https://github.com/liara-cloud/docs.git
+```
+
+2. Navigate to the directory:
+```
+cd docs
+```
+
+3.  Make sure you have [NodeJS & npm](https://nodejs.org/en) installed. If not, please install them before proceeding.
+
+4. Install the dependencies:
+```
+npm install
+```
+
+5. Run the development server:
+```
+npm run dev
+```
+6. Open your browser and go to `http://localhost:3001`.
+and ... That's it!
+
+## Branches 
+- [master](https://github.com/liara-cloud/docs/tree/master): This is the main documentation of Liara
+- [old-docs](https://github.com/liara-cloud/docs/tree/old-docs): This is the old version of Liara's documentation
+
+## Getting Help
+If you have questions, please [create a ticket](https://console.liara.ir/tickets/create)
+
+## Star History
+
+<a href="https://www.star-history.com/#liara-cloud/docs&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=liara-cloud/docs&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=liara-cloud/docs&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=liara-cloud/docs&type=date&legend=top-left" />
+ </picture>
+</a>
+
+---
+
+Feel free to contribute!
+

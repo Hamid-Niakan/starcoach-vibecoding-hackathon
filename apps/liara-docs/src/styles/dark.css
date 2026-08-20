@@ -1,0 +1,197 @@
+.dark body {
+    background: #181818 !important;
+    color: #eee;
+}
+
+.dark #welcome-continer {
+    background-image: url('/static/images/bg-main-dark.webp');
+    border-color: #282828;
+
+}
+
+.dark video,
+.dark img {
+    /* border-radius: 8px;
+    border: 1px solid #fff2; */
+    border: none !important;
+}
+
+.dark .suggestion button {
+    background: #fff;
+    color: #000;
+}
+
+.dark .results ul li {
+    color: #000;
+}
+
+.dark .invert-icon {
+    filter: invert(0);
+}
+
+img {
+    border: none !important;
+}
+
+.dark hr {
+    border-color: #fff2;
+}
+
+.dark pre code {
+    border: 1px solid #fff1;
+    border-radius: 8px;
+    background: linear-gradient(45deg, #222222, #181818) !important;
+}
+
+.dark #tab>div {
+    border-color: #fff1;
+}
+
+.dark #tab>div button {
+    color: #eee;
+}
+
+.dark #tab>div button.active {
+    color: #fff;
+    border-color: #eee;
+}
+
+
+.dark sidebar {
+    border-color: #fff1;
+    background: #222 !important;
+}
+
+.dark sidebar .badge {
+    border-color: #fff2;
+    background: linear-gradient(45deg, #333, #222);
+}
+
+.dark body header {
+    background: #222 !important;
+    color: #eee;
+    border-bottom-color: #fff1;
+}
+
+.dark body header #search {
+    color: gray;
+    border-color: #fff2;
+
+}
+
+
+.dark .highlight-content::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 250px;
+    /* Adjust height as needed */
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #181818);
+    /* Adjust colors as needed */
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.dark body header #search div.badge-cmd-k {
+    background: #333 !important;
+    border-color: transparent;
+    color: gray;
+}
+
+.dark body header #search:hover {
+    background: #303030 !important;
+}
+
+.dark #card {
+    border-color: #fff1;
+    background: linear-gradient(45deg, #222222, #181818);
+    color: #eee;
+}
+
+.dark #card:hover {
+    border-color: #fff3;
+    background: linear-gradient(45deg, #282828, #222);
+}
+
+.dark button.fill {
+    background: #fff;
+    color: #181818;
+}
+
+.dark button.link {
+    background: #ffffff11;
+    color: #fff;
+}
+
+.dark button.link:hover {
+    background: #ffffff19;
+}
+
+.hljs-attr {
+    color: #181818 !important;
+}
+
+.dark .hljs-attr {
+    color: #eee !important;
+}
+
+.dark #steps .stroke {
+    border-color: #fff1;
+}
+
+.dark .important {
+    background: #fff2;
+}
+
+
+/* Custom Table Styles - Dark Mode */
+.dark .custom-table-container {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dark .custom-table-header {
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .custom-table-row:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.dark .custom-table-row-border {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark .custom-table-cell {
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .highlight-container {
+    span.copy {
+        background: #fff1 !important;
+        /* z-index: 1; */
+    }
+
+    span.copy:hover {
+        background: #fff2 !important;
+        /* z-index: 22; */
+    }
+
+    button {
+        color: #000 !important;
+    }
+}
+
+/* Light mode styles for the highlight button */
+.highlight-container button {
+    color: #fff !important;
+}
+
+

@@ -1,0 +1,33 @@
+name: Deploy to Production
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+      - name: install-dependencies
+        run: npm ci
+      - name: update-liara
+        env:
+          LIARA_TOKEN: some-token
+        run: |
+          npm i -g @liara/cli@9
+          liara deploy --app="some-app-name" --api-token="$LIARA_TOKEN" --platform=docker --port=80 --no-app-logs
+      - name: Sleep for 60 seconds
+        run: sleep 60
+        shell: bash
+      - name: search-liara
+        working-directory: ./indexer
+        env:
+          MEILI_PRIVATE_KEY: some-private-key
+          MEILI_ROOT_URL: some-url
+        run: |
+          npm i
+          npm run start

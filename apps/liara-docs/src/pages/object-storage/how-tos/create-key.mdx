@@ -1,0 +1,46 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات ایجاد کلید برای باکت - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات مربوط به نحوه ایجاد کلید برای باکت در فضای ذخیره‌سازی ابری در لیارا"  />
+</Head>
+# ایجاد کلید برای باکت
+<hr className="mb-2" />
+
+در سیستم‌های ذخیره‌سازی ابری، Access Key و Secret Key دو عنصر مهم برای احراز هویت و دسترسی به منابع هستند:
+Access Key شناسه‌ای یکتاست که کاربر یا برنامه را شناسایی می‌کند و Secret Key کلید محرمانه‌ای است که همراه با Access Key استفاده می‌شود تا درخواست‌ها را اعتبارسنجی کند و اطمینان حاصل شود که درخواست از یک منبع معتبر است.
+
+<div className="h-4" />
+
+برای اتصال به ذخیره‌سازی ابری با استفاده از AWS SDK، به کلیدهای Access Key و Secret Key نیاز خواهید داشت. حال برای ایجاد کلید باید وارد بخش **کلیدها** شوید و روی گزینه‌ی **ایجاد کلید** کلیک کنید. در قدم بعد، باید توضیحاتی برای کلید قرار دهید و همچنین دسترسی کلید به باکت‌های مورد نظرتان را مشخص کنید. درنهایت می‌توانید روی گزینه‌ی **تایید**، کلیک کنید تا کلیدهای Access Key و Secret Key ساخته شوند:
+
+<div className="h-4" />
+    <video
+      src="https://media.liara.ir/object-storage/generate-key.mp4"
+      controls="controls"
+      className="block w-full"
+      width="100%"
+    />
+<div className="h-4" />
+
+<Alert variant="info">
+<p>
+Secret Key تنها یک‌بار به شما نمایش داده می‌شود بنابراین آن را در جایی مطمئن ذخیره کنید.
+</p>
+</Alert>
+
+</Layout>

@@ -1,0 +1,278 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import PlatformIcon from "@/components/Common/icons";
+import Table from "@/components/Common/table";
+import TickIcon from "@/components/Common/tick-icon";
+
+import {
+  GoContainer,
+  GoDatabase,
+  GoRocket,
+  GoServer,
+  GoMail,
+  GoGlobe,
+  GoArrowLeft,
+} from "react-icons/go";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات آشنایی با مجوزها در تیم در لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات مربوط به آشنایی با نحوه آشنایی با مجوزها در تیم در لیارا"  />
+</Head>
+# آشنایی با مجوزها در تیم در لیارا
+<hr className="mb-2" />
+
+مجوزها، تعیین‌کننده سطح دسترسی کاربران به سرویس‌های یک تیم هستند. با استفاده از این مجوزها، می‌توان نقش هر عضو را مشخص کرد، مانند مالک که دسترسی کامل به تمام امکانات و تنظیمات تیم دارد، یا مدیر که اختیارات گسترده اما محدودتری نسبت به مالک دارد. 
+به صورت کلی در لیارا، برای تمامی سرویس‌ها، چهار مجوز وجود دارد: 
+
+<div className="h-2" />
+<ul className="pr-4">
+    <li style={{textDecorationColor: "#9ca3af"}}> دیدن </li>
+    <li style={{textDecorationColor: "#9ca3af"}}> استقرار </li>
+    <li style={{textDecorationColor: "#9ca3af"}}> عملیات </li>
+    <li style={{textDecorationColor: "#9ca3af"}}> مدیریت </li>
+</ul>
+
+<div className="h-4" />
+<img src="https://media.liara.ir/teams/roles-on-teams.png" alt="roles on teams"/>
+<div className="h-4" />
+
+در واقع، نقش‌ها ترکیبی از یک‌سری مجوزها هستند که تعیین می‌کنند هر کاربر چه اختیاراتی دارد. در ادامه، 
+حوزه اختیارات هر دسترسی در هر سرویس، به صورت کامل ذکر شده است.
+
+<div className="h-2" />
+<Alert variant="info">
+<p>
+    با توجه به <b>آزمایشی</b> بودن قابلیت تیم‌ها در لیارا، امکان تغییر نوع دسترسی مجوزها وجود خواهد داشت.
+</p>
+</Alert>
+
+<Section id="paas" title="سرویس پلتفرم" />
+
+<Table headers={ ["نوع دسترسی", "دیدن", "استقرار", "عملیات", "مدیریت"]}
+ data={ [
+  ["مشاهده لیست برنامه‌ها", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["کلیک بر روی برنامه مشخص", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["رفع انجماد", "", "", <TickIcon />, <TickIcon />],
+  ["حذف", "", "", "", <TickIcon />],
+  ["تغییر اندازه", "", "", "", <TickIcon />],
+  ["خاموش/روشن کردن", "", "", <TickIcon />, <TickIcon />],
+  ["فعال/غیرفعال‌سازی قابلیت readOnly", "", "", <TickIcon />, <TickIcon />],
+  ["به‌روزرسانی متغیرها", "", "", <TickIcon />, <TickIcon />],
+  ["به‌روزرسانی دامنه‌ها", "", "", <TickIcon />, <TickIcon />],
+  ["مشاهده لاگ‌ها", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["ری‌استارت", "", "", "", <TickIcon />],
+  ["فعال/غیرفعال‌سازی دامنه پیش‌فرض", "", "", <TickIcon />, <TickIcon />],
+  ["فعال/غیرفعال‌سازی استقرار بدون اختلال", "", "", <TickIcon />, <TickIcon />],
+  ["مشاهده برنامک‌ها", "", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده لاگ‌های برنامک‌ها", "", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده رویدادها", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده تاریخچه", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده نسخه فعلی برنامه", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["بازگشت به نسخه قبلی", "", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده گزارشات سخت‌افزاری", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["ایجاد دیسک", "", "", "", <TickIcon />],
+  ["مشاهده دیسک‌ها", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["کلیک بر روی دیسک مشخص", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["حذف دیسک", "", "", "", <TickIcon />],
+  ["مشاهده فضای باقیمانده دیسک", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده فایل‌های پشتیبان دیسک‌ها", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["دانلود فایل‌های پشتیبان دیسک‌ها", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["تهیه فایل پشتیبان از دیسک", "", "", <TickIcon />, <TickIcon />],
+  ["افزایش اندازه دیسک", "", "", <TickIcon />, <TickIcon />],
+  ["مشاهده دسترسی‌های FTPS", "", "", <TickIcon />, <TickIcon />],
+  ["ایجاد دسترسی FTPS", "", "", <TickIcon />, <TickIcon />],
+  ["حذف دسترسی FTPS", "", "", <TickIcon />, <TickIcon />],
+  ["آپلود و استقرار پروژه", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["دانلود سورس‌کد", "", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده لاگ‌های استقرار", <TickIcon />, <TickIcon />, <TickIcon />, <TickIcon />],
+  ["لغو عملیات استقرار", "", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["دسترسی به خط فرمان", "", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["استقرار از طریق ریپازیتوری", "", "", <TickIcon />, <TickIcon />],
+  ["فعال/غیرفعال‌سازی IP ثابت", "", "", <TickIcon />, <TickIcon />],
+  ["دسترسی به file browser دیسک", "", "", <TickIcon />, <TickIcon />],
+]} />
+
+<Alert variant="success">
+<p>
+    سرویس پلتفرم شامل <a href="/one-click-apps/about/" className="text-[#2196f3]">برنامه‌های آماده</a> نیز می‌شود.
+</p>
+</Alert>
+
+<Section id="dbaas" title="سرویس دیتابیس" />
+
+<Table headers={ ["نوع دسترسی", "دیدن", "عملیات", "مدیریت"]}
+ data={ [
+  ["مشاهده لیست دیتابیس‌ها", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["کلیک بر روی دیتابیس مشخص", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["رفع انجماد", "", <TickIcon />, <TickIcon />],
+  ["حذف", "", "", <TickIcon />],
+  ["تغییر اندازه", "", "", <TickIcon />],
+  ["خاموش/روشن کردن", "", <TickIcon />, <TickIcon />],
+  ["تهیه فایل پشتیبان", "", <TickIcon />, <TickIcon />],
+  ["دانلود فایل پشتیبان", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده فایل‌های پشتیبان", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["دسترسی به پنل کنترل", "", <TickIcon />, <TickIcon />],
+  ["امکان آپلود فایل bak در دیتابیس MSSQL", "", <TickIcon />, <TickIcon />],
+  ["فعال/غیرفعال‌سازی شبکه عمومی", "", "", <TickIcon />],
+  ["تنظیم پارامترهای دیتابیس", "", "", <TickIcon />],
+  ["مشاهده رویدادها", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده گزارشات سخت‌افزاری دیتابیس", <TickIcon />, <TickIcon />, <TickIcon />],
+]} />
+
+<Alert variant="success">
+<p>
+    دسترسی به پنل کنترل شامل دسترسی به پنل PHPMyAdmin در دیتابیس‌های MySQL و MariaDB، دسترسی به RedisMyAdmin در دیتابیس Redis و دسترسی به PGAdmin در دیتابیس PostgreSQL می‌شود.
+</p>
+</Alert>
+
+
+<Section id="dns" title="سامانه مدیریت دامنه (DNS)" />
+
+<Table headers={ ["نوع دسترسی", "دیدن", "عملیات", "مدیریت"]}
+ data={ [
+  ["مشاهده لیست دامنه‌ها", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["کلیک بر روی دامنه مشخص", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["حذف دامنه", "", "", <TickIcon />],
+  ["بررسی NSها", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده رکوردهای ثبت شده", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["ایجاد یا آپلود رکورد جدید", "", <TickIcon />, <TickIcon />],
+  ["حذف رکورد", "", <TickIcon />, <TickIcon />],
+]} />
+
+
+<Section id="mail-server" title="ایمیل‌سرور" />
+
+<Table headers={ ["نوع دسترسی", "دیدن", "عملیات", "مدیریت"]}
+ data={ [
+  ["مشاهده لیست نشانی‌های ایمیل‌سرور", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["اضافه کردن نشانی جدید", "", <TickIcon />, <TickIcon />],
+  ["حذف نشانی از ایمیل‌سرور", "", <TickIcon />, <TickIcon />],
+  ["مشاهده پیوست‌های ایمیل", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["دانلود پیوست‌های ایمیل", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده فورواردهای تنظیم‌شده", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["تنظیم فوروارد", "", <TickIcon />, <TickIcon />],
+  ["حذف فوروارد تنظیم‌شده", "", <TickIcon />, <TickIcon />],
+  ["مشاهده رویدادهای ایمیل", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده ایمیل‌های ارسالی و دریافتی", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["کلیک بر روی ایمیل ارسال‌شده یا دریافت‌شده", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["ارسال ایمیل", "", <TickIcon />, <TickIcon />],
+  ["اشتراک‌گذاری یک ایمیل", "", <TickIcon />, <TickIcon />],
+  ["انتقال یک ایمیل به trash", "", <TickIcon />, <TickIcon />],
+  ["حذف دائم یک ایمیل", "", <TickIcon />, <TickIcon />],
+  ["ارتقا پلن ایمیل‌سرور", <TickIcon />, "", <TickIcon />],
+  ["مشاهده تاریخچه پلن‌ ایمیل‌سرور", "", <TickIcon />, <TickIcon />],
+  ["حذف پلن رزرو شده ایمیل", "", "", <TickIcon />],
+  ["مشاهده تاریخچه پلن‌های ایمیل‌سرور", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده حد هرزنامه و دامنه‌های مسدود شده", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["تعیین حد و دامنه هرزنامه", "", <TickIcon />, <TickIcon />],
+  ["حذف حد و دامنه هرزنامه", "", <TickIcon />, <TickIcon />],
+  ["مشاهده لیست سرورهای ایمیل‌سرور", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["کلیک بر روی سرورایمیل مشخص", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["بررسی رکوردهای ایمیل‌سرور", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["حذف ایمیل‌سرور", "", <TickIcon />, <TickIcon />],
+  ["تغییر حالت ارسال ایمیل", "", "", <TickIcon />],
+  ["تغییر پلن ایمیل‌سرور", "", "", <TickIcon />],
+  ["مشاهده تعداد ایمیل‌های ارسال شده در ماه", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده تعداد ایمیل‌های رایگان ارسال شده", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["رفع انجماد", "", <TickIcon />, <TickIcon />],
+  ["مشاهده گزارشات سخت‌افزاری ایمیل", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده دسترسی‌های SMTP", "", <TickIcon />, <TickIcon />],
+  ["ایجاد دسترسی SMTP جدید", "", <TickIcon />, <TickIcon />],
+  ["تغییر رمز دسترسی SMTP", "", <TickIcon />, <TickIcon />],
+  ["حذف دسترسی SMTP", "", <TickIcon />, <TickIcon />],
+  ["ساخت تگ", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده تگ‌های موجود", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده تعداد تگ‌های استفاده‌شده", "", <TickIcon />, <TickIcon />],
+  ["ویرایش تگ‌ها", "", <TickIcon />, <TickIcon />],
+  ["حذف تگ‌ها", "", <TickIcon />, <TickIcon />],
+]} />
+
+
+<Section id="bucket" title="فضای ذخیره‌سازی ابری" />
+
+<Table headers={ ["نوع دسترسی", "دیدن", "عملیات", "مدیریت"]}
+ data={ [
+  ["حذف باکت", "", "", <TickIcon />],
+  ["تغییر سطح دسترسی باکت", "", "", <TickIcon />],
+  ["ارتقا پلن باکت", "", "", <TickIcon />],
+  ["مشاهده لیست باکت‌ها", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["کلیک بر روی باکت مشخص", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["رفع انجماد", "", "", <TickIcon />],
+  ["ساخت پوشه درون باکت", "", <TickIcon />, <TickIcon />],
+  ["حذف پوشه از باکت", "", <TickIcon />, <TickIcon />],
+  ["ساخت کلید", "", <TickIcon />, <TickIcon />],
+  ["اضافه کردن باکت به کلید", "", <TickIcon />, <TickIcon />],
+  ["حذف کلید", "", <TickIcon />, <TickIcon />],
+  ["تغییر رمز کلید", "", <TickIcon />, <TickIcon />],
+  ["مشاهده تمامی کلیدها", "", <TickIcon />, <TickIcon />],
+  ["کلیک بر روی کلید مشخص", "", <TickIcon />, <TickIcon />],
+  ["مشاهده فضای مصرف شده باکت", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده تاریخچه آپلود در باکت", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده گزارشات باکت", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["مشاهده فایل‌های درون باکت", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["آپلود فایل جدید درون باکت", "", <TickIcon />, <TickIcon />],
+  ["دانلود فایل از باکت", <TickIcon />, <TickIcon />, <TickIcon />],
+  ["حذف فایل از باکت", "", <TickIcon />, <TickIcon />],
+  ["مشاهده مشخصات فایل درون باکت", <TickIcon />, <TickIcon />, <TickIcon />],
+]} />
+
+
+<Section id="bucket" title="عملیات حسابداری" />
+
+<Table headers={ ["مدیریت", "عملیات"]}
+ data={ [
+  ["مشاهده صورت‌حساب", <TickIcon />],
+  ["مشاهده اطلاعات تماس", <TickIcon />],
+  ["مشاهده لیست پرداختی‌ها", <TickIcon />],
+  ["افزایش اعتبار مالی تیم", <TickIcon />],
+  ["صدور فاکتور", <TickIcon />],
+]} />
+
+<Section id="team" title="عملیات مربوط به تیم" />
+
+<Table headers={ ["نوع دسترسی", "عملیات", "مدیریت"]}
+ data={ [
+  ["مشاهده شبکه‌های خصوصی ایجاد شده", <TickIcon />, <TickIcon />],
+  ["مشاهده شبکه خصوصی هر برنامه", <TickIcon />, <TickIcon />],
+  ["ساخت شبکه خصوصی", "", <TickIcon />],
+  ["اضافه کردن برنامه یا دیتابیس به شبکه خصوصی", "", <TickIcon />],
+  ["حذف شبکه خصوصی", "", <TickIcon />],
+  ["تنظیم حداقل اعتبار تیم", <TickIcon />, <TickIcon />],
+  ["ارتقا سطح کاربری", <TickIcon />, <TickIcon />],
+  ["رزرو سطح کاربری", <TickIcon />, <TickIcon />],
+  ["مشاهده لیست دعوت‌شدگان به تیم", <TickIcon />, <TickIcon />],
+  ["لغو دعوت  یک کاربر", <TickIcon />, <TickIcon />],
+  ["حذف کاربر از تیم", "", <TickIcon />],
+  ["ایجاد نقش جدید", "", <TickIcon />],
+  ["مشاهده نقش‌ها", "", <TickIcon />],
+  ["تغییر نقش یک کاربر", "", <TickIcon />],
+]} />
+
+<Section id="public-access" title="دسترسی عمومی" />
+
+دسترسی عمومی، دسترسی است که به صورت پیش‌فرض برای تمامی کاربران یک تیم وجود دارد 
+و نیازی به اعطای مجوز خاصی نیست. در ادامه، لیستی از دسترسی‌های عمومی، قرار گرفته است: 
+
+<div className="h-2" />
+<ul className="pr-4">
+    <li style={{textDecorationColor: "#9ca3af"}}> اطلاعات تیم </li>
+    <li style={{textDecorationColor: "#9ca3af"}}> شبکه‌های خصوصی </li>
+    <li style={{textDecorationColor: "#9ca3af"}}> اعلانات تیم </li>
+    <li style={{textDecorationColor: "#9ca3af"}}> تیکت‌ها </li>
+    <li style={{textDecorationColor: "#9ca3af"}}> اعضای تیم </li>
+</ul>
+
+
+</Layout>

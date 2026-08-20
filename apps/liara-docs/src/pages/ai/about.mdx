@@ -1,0 +1,203 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import PlatformIcon from "@/components/Common/icons";
+
+import {
+  GoContainer,
+  GoKebabHorizontal,
+  GoMortarBoard,
+  GoTelescope, 
+  GoTools,
+  GoSearch,
+  GoDatabase,
+  GoRocket,
+  GoServer,
+  GoImage,
+  GoMail,
+  GoGlobe,
+  GoArrowLeft,
+} from "react-icons/go";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات هوش مصنوعی - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات مربوط به آشنایی با هوش مصنوعی‌های لیارا، ویژگی‌ها و امکانات آن"  />
+</Head>
+# سرویس هوش مصنوعی لیارا
+<hr className="mb-2" />
+
+<Section id='what-is-aiaas' title='سرویس AI چیست؟' />
+
+یک سرویس AI یا اصطلاحاً AIaaS (مخفف AI as a Service)، سرویسی است که خدمات و ابزارهای هوش مصنوعی را از طریق API به کاربران ارائه می‌دهد؛ این خدمات می‌تواند شامل یادگیری ماشین، پردازش زبان طبیعی، بینایی ماشین و دیگر فناوری‌های AI باشد
+و نیازی نیست که کاربر خود را درگیر زیرساخت‌های پیچیده و هزینه‌بر کند. به عبارت دیگر، AIaaS به کاربران این امکان را می‌دهد که از قدرت هوش مصنوعی بدون نیاز به تخصص عمیق در این حوزه استفاده کنند.
+<div className="h-4" />
+
+در ادامه، بخوانید: 
+
+<div className="h-4" />
+<div className="grid md:grid-cols-3 gap-4">
+            {[
+      { title: 'راه‌اندازی سریع سرویس AI لیارا', link: "./quick-start" },
+      {
+        title: "جزئیات سرویس AI لیارا",
+        link: "/ai/details/about"
+      },
+      {
+        title: "اتصال به سرویس‌های مختلف",
+        link: "/ai/connect-to-service/about"
+      },
+      {
+        title: "شروع به کار با AI SDK",
+        link: "/ai/getting-started/about"
+      },
+      {
+        title: "راهنمای گام‌به‌گام",
+        link: "/ai/cookbook/about"
+      },
+      {
+        title: "هسته AI SDK",
+        link: "/ai/ai-sdk-core/about"
+      },
+      {
+        title: "کتابخانه AI SDK UI",
+        link: "/ai/ai-sdk-ui/about/"
+      },
+      {
+        title: "ارجاعات AI SDK",
+        link: "/ai/references/about"
+      },
+
+
+    
+    ].map(item =>
+              <Link href={item.link}>
+                <Card className="flex cursor-pointer w-full items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <h4>
+                      {item.title}
+                    </h4>
+                    
+                  </div>
+                  <GoArrowLeft className="ml-1" />
+                </Card>
+              </Link>
+            )}
+          </div>
+
+<Section id="liara-provided-ais" title="API لیارا، از چه مدل‌هایی پشتیبانی می‌کند؟" />
+لیارا از جمله اولین سرویس‌های میزبانی ابری ایرانی است که در زمینه ارائه خدمات مربوط به هوش مصنوعی، پیش‌تاز است. 
+در حال حاضر، لیارا در API خود، از هوش مصنوعی‌های زیر پشتیبانی می‌کند:
+
+<div className="h-4" />
+<div className="grid md:grid-cols-3 gap-4">
+            {[
+    { alt: 'https://media.liara.ir/logos/ai/openai-light.svg', platform: 'OpenAI/GPT', link: "./openai" },
+    { alt: 'https://media.liara.ir/logos/ai/gemini-google.svg', platform: 'Google/Gemini', link: "./google-gemini" },
+    { alt: 'https://media.liara.ir/logos/ai/grok-x-ai.svg', platform: 'X-AI/Grok', link: "./grok-x-ai" },
+    { alt: 'https://media.liara.ir/logos/ai/deepseek.svg', platform: 'DeepSeek', link: "./deepseek" },
+    { alt: 'https://media.liara.ir/logos/ai/claude.svg', platform: 'Anthropic/Claude', link: "./anthropic-claude" },
+    { alt: 'https://media.liara.ir/logos/ai/meta-llama.svg', platform: 'Meta/Llama', link: "./meta-llama" },
+    { alt: 'https://media.liara.ir/logos/ai/mistral-nemo.svg', platform: 'Mistral NeMo', link: "./mistral-nemo" },
+    { alt: 'https://media.liara.ir/logos/ai/perplexity.svg', platform: 'Perplexity', link: "./perplexity" },
+    { alt: 'https://media.liara.ir/logos/ai/qwen-svg-white.png', platform: 'Qwen', link: "./qwen" },
+    { alt: 'https://media.liara.ir/logos/ai/moonshot-white.svg', platform: 'MoonshotAI/Kimi', link: "./moonshotai" },
+    { alt: 'https://media.liara.ir/logos/ai/z-ai-white.svg', platform: 'Z.ai/GLM', link: "./z-ai" },
+    { alt: 'https://media.liara.ir/logos/ai/minimax-white.png', platform: 'MiniMax', link: "./minimax" },
+    { alt: 'https://media.liara.ir/logos/ai/xiaomi-logo.svg', platform: 'Xiaomi/MiMO', link: "./xiaomi" },
+    { alt: 'https://media.liara.ir/logos/ai/aionlabs-logo.svg', platform: 'AION Labs', link: "./aionlabs" },
+    { alt: 'https://media.liara.ir/logos/ai/huggingface-logo.svg', platform: 'Hugging Face', link: "./hugging-face" },
+    { alt: 'https://media.liara.ir/logos/ai/tencent.svg', platform: 'Tencent', link: "./tencent" },
+    ].map(item =>
+              <Link href={item.link}>
+                <Card className="flex cursor-pointer w-full items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-[40px] p-1  bg-[#333] rounded-lg">
+                      <PlatformIcon platform={item.alt} />
+                    </div>
+                    <h4>
+                      {item.platform}
+                    </h4>
+                  </div>
+                  <GoArrowLeft className="ml-1" />
+                </Card>
+              </Link>
+            )}
+          </div>
+
+<Section id="foundations" title="پایه و اساس کار با هوش مصنوعی" />
+
+لیارا از جمله اولین ارائه‌دهندگان سرویس هوش مصنوعی در ایران است که برای این سرویس، در جهت تسهیل روند توسعه پروژه‌تان، مستندات کامل و جامعی را 
+فراهم کرده است. مستندات سرویس هوش مصنوعی لیارا، از پایه و اساس توضیح داده شده است و نیازی نیست که شما یک متخصص هوش مصنوعی باشید؛ در هر سطحی که هستید، می‌توانید پرقدرت، شروع کنید: 
+
+
+<div className="h-4" />
+<div className="grid md:grid-cols-1 gap-4">
+            {[
+           {
+             title: "در یک نگاه",
+             icon: <GoTelescope />,
+             link: "/ai/foundations/overview"
+           },
+           {
+             title: "ورودی‌ها (پرامپت‌ها)",
+             icon: <GoRocket />,
+             link: "/ai/foundations/prompts"
+           },
+           {
+             title: "Toolها (ابزارها)",
+             icon: <GoTools />,
+             link: "/ai/foundations/tools"
+           },
+           {
+             title: "قابلیت استریم (Streaming)",
+             icon: <GoKebabHorizontal />,
+             link: "/ai/foundations/streaming"
+           },
+           {
+             title: "Agentها (عامل‌ها)",
+             icon: <GoMortarBoard />,
+             link: "/ai/foundations/agents"
+           },
+           {
+              title: "قابلیت جستجو در وب",
+              icon: <GoSearch />,
+              link: "/ai/foundations/websearch"
+           },
+           {
+              title: "تولید تصویر",
+              icon: <GoImage />,
+              link: "/ai/foundations/image-generation"
+           },
+  ].map(item =>
+              <Link href={item.link}>
+                <Card className="flex cursor-pointer w-full items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-[#222] text-white p-1 rounded-md">
+                        {item.icon}
+                    </div>
+                    <h4>
+                      {item.title}
+                    </h4>
+                  </div>
+                  <GoArrowLeft className="ml-1" />
+                </Card>
+              </Link>
+            )}
+          </div>
+<div className="h-4" />
+
+
+
+
+</Layout>

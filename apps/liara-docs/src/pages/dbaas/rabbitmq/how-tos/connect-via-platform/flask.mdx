@@ -1,0 +1,175 @@
+import Layout from "@/components/Layout";
+import Button from "@/components/Common/button";
+import Section from "@/components/Common/section";
+import Alert from "@/components/Common/alert";
+import Tabs from "@/components/Common/tab";
+import Step from "@/components/Common/step";
+import Card from "@/components/Common/card";
+import Important from "@/components/Common/important";
+import Highlight from "@/components/Common/highlight";
+import Link from "next/link";
+import NextPage from "@/components/Common/nextpage";
+
+import Head from "next/head";
+
+<Layout>
+<Head>
+<title>مستندات اتصال به RabbitMQ در پلتفرم Flask - لیارا</title>
+<meta property="og:title" content="مستندات خدمات رایانش ابری لیارا" />
+<meta property="og:description" content="مستندات قدم به قدم اتصال به پیام‌رسان RabbitMQ در فریم‌ورک Flask"  />
+</Head>
+# اتصال به RabbitMQ در برنامه‌های Flask
+<hr className="mb-2" />
+
+برای اتصال به  RabbitMQ در برنامه‌های Flask، در ابتدا باید ماژول مربوط به آن‌را با اجرای دستور زیر، نصب کنید:
+
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="bash">
+        {`pip install pika python-dotenv`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+پس از آن، کافیست تا 
+اطلاعات مربوط به RabbitMQ خود را 
+به متغیرهای محیطی برنامه خود، اضافه کنید؛ به عنوان مثال:
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="bash">
+        {`RABBITMQ_HOST=fitz-roy.liara.cloud
+RABBITMQ_PORT=32923
+RABBITMQ_USER=root
+RABBITMQ_PASS=63LVuatIrWWajE7gxSj20gHL
+`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+در نهایت، کافیست دستور زیر را اجرا کنید تا فایل <Important>requirements.txt</Important> به‌روز شود و نام ماژول مربوط به دیتابیس، در این فایل، قرار بگیرد:
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="bash">
+        {`pip freeze > requirements.txt`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+تمامی کارها انجام شده است و شما می‌توانید از RabbitMQ خود استفاده کنید. به عنوان مثال، می‌توانید 
+می‌توانید برای اتصال به RabbitMQ، مانند قطعه کد زیر، عمل کنید:
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="python">
+        {`from flask import Flask
+import os
+import pika
+from dotenv import load_dotenv
+
+load_dotenv()
+
+app = Flask(__name__)
+
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
+RABBITMQ_PORT = int(os.getenv('RABBITMQ_PORT'))
+RABBITMQ_USER = os.getenv('RABBITMQ_USER')
+RABBITMQ_PASS = os.getenv('RABBITMQ_PASS')
+
+def check_rabbitmq_connection():
+    try:
+        credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASS)
+        parameters = pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT, credentials=credentials)
+
+        connection = pika.BlockingConnection(parameters)
+        print("connection successful")
+
+        connection.close()
+        return "connection successful"
+    except Exception as e:
+        print("connection failed, error: ", e)
+        return f"connection failed, error: {e}"
+
+@app.route('/test-rabbitmq')
+def test_rabbitmq_connection():
+    result = check_rabbitmq_connection()
+    return result
+
+if __name__ == '__main__':
+    app.run(debug=True)
+`}
+    </Highlight>
+    </div>
+
+{/* <Section id="connection-pooling" title="استفاده از Connection Pooling" />
+
+مفهوم Connection pooling به معنای استفاده از یک مجموعه اتصالات از پیش ساخته شده برای اتصال به پایگاه داده است. این تکنیک باعث می‌شود به جای ایجاد و بستن مکرر اتصالات، از اتصالات موجود در مجموعه استفاده شود که کارایی را افزایش می‌دهد.
+<Alert variant='success'>همچنین بخوانید: <a className="text-[#2196f3] " href="/dbaas/details/connection-pool">آشنایی بیشتر با قابلیت Connection Pooling</a></Alert>
+
+برای استفاده از قابلیت connection pooling در دیتابیس MySQL، فقط کافیست تا با اجرای دستور زیر، ماژول موردنیاز را نصب کنید:
+
+<div className="h-2" />
+  <div dir='ltr'>
+  <Highlight className="bash">
+{`pip install django-db-connection-pool[mysql]`}
+  </Highlight>
+  </div>
+<div className="h-2" />
+
+سپس، در فایل <Important>settings.py</Important> در بخش <Important>DATABASES</Important>، فیلد مربوط به <Important>ENGINE</Important> را مانند شکل زیر تغییر دهید:
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="python">
+        {`# other codes ...
+import os
+DATABASES = {
+    'default': {
+        'ENGINE':   'dj_db_conn_pool.backends.mysql', 
+        'NAME':     os.getenv("MYSQL_DB_NAME"), 
+        'USER':     os.getenv("MYSQL_DB_USER"),
+        'PASSWORD': os.getenv("MYSQL_DB_PASS"),
+        'HOST':     os.getenv("MYSQL_DB_HOST"),
+        'PORT':     os.getenv("MYSQL_DB_PORT"),
+    },
+}
+# other codes ...`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+همچنین، می‌توانید تنظیمات مربوط به Connection Pooling را در فیلدی به نام <Important>POOL_OPTIONS</Important>مانند قطعه کد زیر، بر روی دیتابیس خود، اعمال کنید:
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="python">
+        {`# other codes ...
+import os
+DATABASES = {
+    'default': {
+        'ENGINE':   'dj_db_conn_pool.backends.mysql', 
+        'NAME':     os.getenv("MYSQL_DB_NAME"), 
+        'USER':     os.getenv("MYSQL_DB_USER"),
+        'PASSWORD': os.getenv("MYSQL_DB_PASS"),
+        'HOST':     os.getenv("MYSQL_DB_HOST"),
+        'PORT':     os.getenv("MYSQL_DB_PORT"),
+        'POOL_OPTIONS': {
+            'POOL_SIZE': 10,
+            'MAX_OVERFLOW': 10,
+            'RECYCLE': 24 * 60 * 60
+        }
+    },
+}
+# other codes ...`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+در نهایت، کافیست دستور زیر را اجرا کنید تا فایل <Important>requirements.txt</Important>، به‌روز شود و نام ماژول مورد نیاز، در آن، قرار بگیرد:
+<div className="h-2" />
+    <div dir='ltr'>
+    <Highlight className="python">
+        {`pip freeze > requirements.txt`}
+    </Highlight>
+    </div>
+<div className="h-2" />
+
+اکنون می‌توانید مجدداً برنامه‌تان را در لیارا مستقر کرده و در صفحه <Important>mysql/</Important> وضعیت اتصال به دیتابیس خود را بررسی کنید. */}
+
+</Layout>
