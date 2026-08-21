@@ -11,6 +11,12 @@ FastAPI AI gateway:
 The legacy backend is retired. The active public backend routes are `/v1/models`,
 `/v1/chat/completions`, `/health/liveness`, and `/health/readiness` on port 4000.
 
+The Liara assistant now builds a deterministic, revision-pinned corpus from the imported official
+documentation, retrieves bounded official passages, validates adjacent citations, and returns an
+additive terminal `x_liara` object while preserving the OpenAI-compatible API. Retrieval,
+intent/workflow policy, protected metrics, route budgets, and safe exact reuse live in `ai-gw`;
+conversation history and explicit preferences remain tab-scoped in the browser.
+
 ## Prerequisites
 
 - Node.js 24 and pnpm 10.33.0 through Corepack
@@ -64,6 +70,12 @@ docker compose logs gateway-bootstrap gateway
 docker compose down
 ```
 
+The first Meilisearch bootstrap can take several minutes while the multilingual search model is
+initialized and 4,962 documentation passages are indexed. The bounded local default is ten minutes;
+override `AI_GATEWAY_MEILI_TASK_TIMEOUT_MS` in `.env` if the machine needs longer. The documentation
+site starts independently during this bootstrap; chat becomes available once the gateway readiness
+check passes.
+
 If a default host port is occupied, set `AI_GATEWAY_PORT`, `REDIS_HOST_PORT`,
 `MOCK_UPSTREAM_HOST_PORT`, `LIARA_HOST_PORT`, or `ZARINPAL_HOST_PORT` in `.env`. For example:
 
@@ -112,6 +124,27 @@ pnpm --filter @hackathon/zarin-dashboard dev
 The public gateway URL is compiled into Liara's static build. Rebuild Liara when it changes.
 ZarinPal has no gateway environment variable or runtime dependency in this feature.
 
+### Verify without Docker
+
+Docker is not required for source-level development. The following checks exercise the contracts,
+shared chat, corpus builder, gateway unit/contract/security tests, operations guards, and static
+builds without opening the Docker socket:
+
+```bash
+pnpm liara:index:build
+pnpm liara:index:validate
+pnpm test:liara
+uv --directory ai-gw run --frozen pytest -q -m "not redis and not performance"
+pnpm --filter @hackathon/contracts build
+pnpm --filter @hackathon/api-client build
+pnpm --filter @hackathon/chat-ui build
+pnpm --filter @hackathon/liara-docs build
+```
+
+Redis multi-replica, complete browser runtime, image, Compose, and Liara staging checks are separate
+acceptance gates. If those services or credentials are unavailable, leave their task/evidence rows
+blocked; do not replace them with a source-level pass.
+
 ## OpenAI-compatible smoke tests
 
 ```bash
@@ -150,6 +183,21 @@ Useful focused commands:
 | FastAPI gateway   | `pnpm build:gateway`, `pnpm lint:gateway`, `pnpm type-check:gateway`, `pnpm test:gateway` |
 | Operations guards | `pnpm test:ops`                                                                           |
 | One frontend      | `pnpm --filter @hackathon/liara-docs build`                                               |
+
+Feature-007 Liara quality work uses tracked cases under `evals/liara/` and writes generated
+indexes, reports, screenshots, and staging evidence under the gitignored `.artifacts/liara/` tree.
+The root commands added by that feature are:
+
+| Liara quality concern          | Command                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| Scorecard baseline/final       | `pnpm liara:audit --mode baseline` / `pnpm liara:audit --mode final`           |
+| Validate evaluation inputs     | `pnpm liara:eval:validate`                                                     |
+| Build/validate corpus          | `pnpm liara:index:build` / `pnpm liara:index:validate`                         |
+| Retrieval/answer/cost evidence | `pnpm liara:eval:retrieval`, `pnpm liara:eval:answers`, `pnpm liara:eval:cost` |
+| Remote staging acceptance      | `pnpm liara:staging:accept -- --gateway-url … --docs-url … --model …`          |
+| Liara source/ops tests         | `pnpm test:liara`                                                              |
+
+These commands never write generated output into tracked source directories.
 
 Redis-backed gateway integration suites use the local Redis mapping:
 
@@ -227,3 +275,9 @@ Liara upstream provenance and update instructions remain in
 [`docs/architecture/liara-upstream.md`](docs/architecture/liara-upstream.md). Gateway import
 provenance and operator boundaries are in
 [`docs/architecture/ai-gateway-upstream.md`](docs/architecture/ai-gateway-upstream.md).
+The grounded-assistant topology is summarized in
+[`docs/architecture/overview.md`](docs/architecture/overview.md); ingestion, operations, cost, and
+Liara-native deployment procedures are in [`evals/liara/README.md`](evals/liara/README.md),
+[`ai-gw/docs/liara-assistant-operations.md`](ai-gw/docs/liara-assistant-operations.md),
+[`ai-gw/docs/liara-assistant-cost-policy.md`](ai-gw/docs/liara-assistant-cost-policy.md), and
+[`deploy/liara/README.md`](deploy/liara/README.md).

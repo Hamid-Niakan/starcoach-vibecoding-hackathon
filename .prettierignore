@@ -7,6 +7,10 @@ build
 test-results
 playwright-report
 .turbo
+.artifacts
+.liara-index
+evals/liara/reports
+evals/liara/private
 pnpm-lock.yaml
 apps/liara-docs/public
 apps/liara-docs/src/pages

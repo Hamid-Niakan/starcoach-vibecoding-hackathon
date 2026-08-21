@@ -28,6 +28,40 @@
   color: #6b7280;
   font-size: 0.85rem;
 }
+.hackathon-chat__header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.hackathon-chat__preferences {
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+}
+.hackathon-chat__preferences summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--chat-accent);
+}
+.hackathon-chat__preferences > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.hackathon-chat__preferences label {
+  display: grid;
+  gap: 0.2rem;
+}
+.hackathon-chat__preferences select {
+  min-height: 44px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  padding: 0.35rem;
+}
 .hackathon-chat__badge {
   white-space: nowrap;
   border-radius: 999px;
@@ -50,6 +84,26 @@
   text-align: center;
   color: #6b7280;
 }
+.hackathon-chat__examples {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+.hackathon-chat__examples button,
+.hackathon-chat__new,
+.hackathon-chat__feedback button,
+.hackathon-chat__next button,
+.hackathon-chat__next a {
+  min-height: 44px;
+  border: 1px solid #d8b4fe;
+  border-radius: 12px;
+  background: #faf5ff;
+  color: #6b21a8;
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+}
 .hackathon-chat__message {
   max-width: min(85%, 44rem);
   border-radius: 16px;
@@ -65,6 +119,170 @@
 }
 .hackathon-chat__message p {
   margin: 0.25rem 0;
+}
+.hackathon-chat__markdown,
+.hackathon-chat__markdown > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.hackathon-chat__code-block {
+  max-width: 100%;
+  margin: 0.75rem 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #111827;
+  color: #f8fafc;
+}
+.hackathon-chat__code-toolbar {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.75rem;
+  background: #1f2937;
+  font-size: 0.78rem;
+}
+.hackathon-chat__code-toolbar button {
+  min-height: 36px;
+  border: 1px solid #4b5563;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.hackathon-chat__code-block pre {
+  max-width: 100%;
+  margin: 0;
+  overflow-x: auto;
+  padding: 1rem;
+}
+.hackathon-chat__table-scroll {
+  max-width: 100%;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+.hackathon-chat__table-scroll table {
+  min-width: 32rem;
+  border-collapse: collapse;
+}
+.hackathon-chat__table-scroll th,
+.hackathon-chat__table-scroll td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.6rem;
+  text-align: start;
+}
+.hackathon-chat__sources {
+  margin-top: 0.8rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.6rem;
+}
+.hackathon-chat__sources h2 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+.hackathon-chat__sources ol {
+  margin: 0.4rem 0;
+  padding-inline-start: 1.4rem;
+}
+.hackathon-chat__sources a {
+  overflow-wrap: anywhere;
+}
+.hackathon-chat__feedback {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+}
+.hackathon-chat__feedback button {
+  min-width: 44px;
+  padding: 0.35rem 0.5rem;
+}
+.hackathon-chat__feedback button[aria-pressed="true"] {
+  border-color: var(--chat-accent);
+  background: #ede9fe;
+}
+.hackathon-chat__feedback-reasons {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.hackathon-chat__next {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+.hackathon-chat__new-wrap {
+  position: relative;
+}
+.hackathon-chat__confirm {
+  position: absolute;
+  z-index: 5;
+  inset-inline-end: 0;
+  top: calc(100% + 0.4rem);
+  width: min(18rem, 80vw);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.18);
+  padding: 0.8rem;
+}
+.hackathon-chat__confirm button {
+  min-height: 44px;
+  margin-inline-end: 0.4rem;
+}
+.hackathon-chat__jump {
+  align-self: center;
+  min-height: 44px;
+  margin-bottom: 0.35rem;
+  border: 0;
+  border-radius: 999px;
+  background: #111827;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+.hackathon-chat__workflow {
+  margin: 0.4rem 1rem;
+  border: 1px solid #ddd6fe;
+  border-radius: 12px;
+  background: #faf5ff;
+  padding: 0.7rem;
+}
+.hackathon-chat__workflow h2 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+.hackathon-chat__workflow ol {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.hackathon-chat__workflow li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+}
+.hackathon-chat__workflow li > div {
+  flex: 1;
+}
+.hackathon-chat__workflow small {
+  display: block;
+}
+.hackathon-chat__workflow button {
+  min-height: 44px;
+  border: 1px solid var(--chat-accent);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--chat-accent);
+  cursor: pointer;
 }
 .hackathon-chat__message pre,
 .hackathon-chat__message code,
@@ -135,7 +353,10 @@
 }
 .hackathon-chat__composer textarea:focus-visible,
 .hackathon-chat__composer button:focus-visible,
-.hackathon-chat__retry:focus-visible {
+.hackathon-chat__retry:focus-visible,
+.hackathon-chat button:focus-visible,
+.hackathon-chat a:focus-visible,
+.hackathon-chat__table-scroll:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--chat-accent) 45%, transparent);
   outline-offset: 2px;
 }
@@ -179,11 +400,27 @@
   }
   .hackathon-chat__header {
     padding: 0.85rem 1rem;
+    flex-direction: column;
+  }
+  .hackathon-chat__header-actions {
+    width: 100%;
+    justify-content: space-between;
   }
   .hackathon-chat__messages {
-    padding: 1rem;
+    padding: 1rem max(1rem, env(safe-area-inset-right))
+      max(1rem, env(safe-area-inset-bottom))
+      max(1rem, env(safe-area-inset-left));
   }
   .hackathon-chat__composer {
     padding: 0.75rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hackathon-chat *,
+  .hackathon-chat *::before,
+  .hackathon-chat *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }

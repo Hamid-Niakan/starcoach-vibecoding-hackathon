@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hackathon.local/contracts/liara-evaluation-case-v1.json",
+  "title": "Liara Evaluation Case V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "schema_version",
+    "dataset_version",
+    "split",
+    "documentation_revision",
+    "messages",
+    "language",
+    "category",
+    "difficulty",
+    "expected_intent",
+    "expected_sources",
+    "required_facts",
+    "required_cautions",
+    "forbidden_claims",
+    "security_tags",
+    "critical_failures"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^liara-[a-z0-9-]{3,80}$" },
+    "schema_version": { "const": 1 },
+    "dataset_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "split": { "enum": ["tuning", "held_out"] },
+    "documentation_revision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "messages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 13,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "content"],
+        "properties": {
+          "role": { "enum": ["user", "assistant"] },
+          "content": { "type": "string", "minLength": 1, "maxLength": 8000 }
+        }
+      }
+    },
+    "language": { "enum": ["fa", "en", "mixed", "finglish"] },
+    "category": {
+      "enum": [
+        "direct",
+        "complex",
+        "troubleshooting",
+        "comparison",
+        "ambiguous",
+        "unanswerable",
+        "out_of_scope",
+        "prompt_injection",
+        "destructive_live_state"
+      ]
+    },
+    "difficulty": { "enum": ["simple", "complex"] },
+    "expected_intent": {
+      "enum": [
+        "direct",
+        "complex",
+        "clarify",
+        "abstain",
+        "out_of_scope",
+        "elevated_risk"
+      ]
+    },
+    "expected_sources": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["url"],
+        "properties": {
+          "url": { "type": "string", "pattern": "^https://docs\\.liara\\.ir/" },
+          "anchor": { "type": ["string", "null"], "maxLength": 240 }
+        }
+      }
+    },
+    "required_facts": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+    },
+    "required_cautions": {
+      "type": "array",
+      "maxItems": 10,
+      "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+    },
+    "forbidden_claims": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+    },
+    "expected_clarification": { "type": ["string", "null"], "maxLength": 1000 },
+    "security_tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 12,
+      "items": { "type": "string", "pattern": "^[a-z0-9_-]{1,64}$" }
+    },
+    "critical_failures": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+    }
+  }
+}

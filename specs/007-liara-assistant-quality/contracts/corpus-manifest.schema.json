@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hackathon.local/contracts/liara-corpus-manifest-v1.json",
+  "title": "Liara Corpus Manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "upstream_revision",
+    "schema_version",
+    "chunker_version",
+    "embedder_revision_digest",
+    "aggregate_checksum",
+    "page_count",
+    "chunk_count",
+    "built_at",
+    "status"
+  ],
+  "properties": {
+    "revision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "upstream_revision": { "type": "string", "pattern": "^[a-f0-9]{7,40}$" },
+    "schema_version": { "const": 1 },
+    "chunker_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]{1,64}$"
+    },
+    "embedder_revision_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "aggregate_checksum": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "page_count": { "type": "integer", "minimum": 1 },
+    "chunk_count": { "type": "integer", "minimum": 1 },
+    "built_at": { "type": "string", "format": "date-time" },
+    "status": {
+      "enum": ["building", "validating", "active", "superseded", "failed"]
+    },
+    "index_uid": {
+      "type": "string",
+      "pattern": "^liara_docs_[a-f0-9]{12,64}$"
+    },
+    "route_inventory_checksum": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "policy_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

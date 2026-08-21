@@ -44,6 +44,4 @@ async def test_openapi_advertises_optional_placeholder_authorization_and_request
     for path, method in (("/v1/models", "get"), ("/v1/chat/completions", "post")):
         operation = schema["paths"][path][method]
         assert {"$ref": "#/components/parameters/OptionalPlaceholderAuthorization"} in operation["parameters"]
-        assert operation["responses"]["200"]["headers"]["x-request-id"] == {
-            "$ref": "#/components/headers/RequestId"
-        }
+        assert operation["responses"]["200"]["headers"]["x-request-id"] == {"$ref": "#/components/headers/RequestId"}

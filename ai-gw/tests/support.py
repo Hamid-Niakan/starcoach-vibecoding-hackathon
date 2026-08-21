@@ -12,11 +12,20 @@ class FakeLimiter:
         self.reservations: list[tuple[str, int]] = []
         self.reconciliations: list[int | None] = []
 
-    async def reserve(self, client_id: str, token_count: int) -> UsageReservation:
+    async def reserve(self, client_id: str, token_count: int, cost_micro_units: int = 0) -> UsageReservation:
         self.reservations.append((client_id, token_count))
-        return UsageReservation("00000000-0000-4000-8000-000000000001", token_count)
+        return UsageReservation(
+            "00000000-0000-4000-8000-000000000001",
+            token_count,
+            cost_micro_units,
+        )
 
-    async def reconcile(self, reservation: UsageReservation, actual_tokens: int | None = None) -> None:
+    async def reconcile(
+        self,
+        reservation: UsageReservation,
+        actual_tokens: int | None = None,
+        actual_cost_micro_units: int | None = None,
+    ) -> None:
         self.reconciliations.append(actual_tokens)
 
 

@@ -12,8 +12,13 @@ class ParallelRequestLimiter:
         self.store = store
         self.prometheus = prometheus
 
-    async def reserve(self, client_id: str, token_count: int) -> UsageReservation:
-        decision, reservation = await self.store.admit(client_id, token_count)
+    async def reserve(
+        self,
+        client_id: str,
+        token_count: int,
+        cost_micro_units: int = 0,
+    ) -> UsageReservation:
+        decision, reservation = await self.store.admit(client_id, token_count, cost_micro_units)
         if not decision.allowed or reservation is None:
             if decision.reason.value.startswith("state_"):
                 if self.prometheus is not None:
@@ -39,7 +44,12 @@ class ParallelRequestLimiter:
             self.prometheus.set_readiness(True)
         return reservation
 
-    async def reconcile(self, reservation: UsageReservation, actual_tokens: int | None = None) -> None:
-        outcome = await self.store.reconcile(reservation, actual_tokens)
+    async def reconcile(
+        self,
+        reservation: UsageReservation,
+        actual_tokens: int | None = None,
+        actual_cost_micro_units: int | None = None,
+    ) -> None:
+        outcome = await self.store.reconcile(reservation, actual_tokens, actual_cost_micro_units)
         if outcome is ReconciliationOutcome.CONSERVATIVE and self.prometheus is not None:
             self.prometheus.set_readiness(False)

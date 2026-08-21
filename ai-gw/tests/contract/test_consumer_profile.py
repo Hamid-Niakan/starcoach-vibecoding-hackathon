@@ -14,7 +14,18 @@ from tests.support import FakeLimiter
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 PROFILE_PATH = REPOSITORY_ROOT / "specs/006-integrate-ai-gateway/contracts/openapi.yaml"
+LIARA_PROFILE_PATH = REPOSITORY_ROOT / "specs/007-liara-assistant-quality/contracts/openapi.yaml"
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head", "trace"}
+
+
+def test_liara_grounding_consumer_profile_is_valid_and_additive() -> None:
+    profile = yaml.safe_load(LIARA_PROFILE_PATH.read_text(encoding="utf-8"))
+    validate(profile)
+    metadata = profile["components"]["schemas"]["LiaraAssistantMetadataV1"]
+    assert metadata["additionalProperties"] is False
+    assert {"documentation_revision", "citations", "intent"} <= set(metadata["required"])
+    terminal = profile["components"]["schemas"]["LiaraTerminalChunk"]
+    assert "x_liara" in terminal["required"]
 
 
 def _resolve(document: dict[str, Any], value: dict[str, Any]) -> dict[str, Any]:
@@ -68,9 +79,9 @@ def _assert_operation_subset(
         expected_response = _resolve(profile, expected_response_value)
         actual_response = _resolve(producer, actual["responses"][status])
         assert set(expected_response.get("content", {})) <= set(actual_response.get("content", {}))
-        assert {
-            header.lower() for header in expected_response.get("headers", {})
-        } <= {header.lower() for header in actual_response.get("headers", {})}
+        assert {header.lower() for header in expected_response.get("headers", {})} <= {
+            header.lower() for header in actual_response.get("headers", {})
+        }
 
 
 @pytest.mark.asyncio

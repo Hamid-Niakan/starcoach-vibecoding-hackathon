@@ -1,0 +1,27 @@
+FROM node:24-bookworm-slim AS index-builder
+WORKDIR /workspace
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
+COPY scripts ./scripts
+COPY specs/007-liara-assistant-quality/contracts ./specs/007-liara-assistant-quality/contracts
+COPY docs/architecture/liara-upstream.md ./docs/architecture/liara-upstream.md
+COPY apps/liara-docs/public/llms ./apps/liara-docs/public/llms
+RUN pnpm install --frozen-lockfile && pnpm liara:index:build -- --output /approved-index
+ARG APPROVED_CORPUS_REVISION
+RUN test -n "$APPROVED_CORPUS_REVISION" && node -e "const fs=require('fs');const p='/approved-index/manifest.json';const m=JSON.parse(fs.readFileSync(p));if(m.revision!==process.env.APPROVED_CORPUS_REVISION)process.exit(1);m.status='active';fs.writeFileSync(p,JSON.stringify(m,null,2)+'\n')"
+
+FROM python:3.12-slim AS runtime
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
+RUN groupadd --system gateway && useradd --system --gid gateway --home-dir /app gateway
+COPY --from=ghcr.io/astral-sh/uv:0.8.13 /uv /usr/local/bin/uv
+WORKDIR /app
+COPY ai-gw/pyproject.toml ai-gw/uv.lock ai-gw/README.md ./
+RUN uv sync --frozen --no-dev --no-install-project
+COPY ai-gw/src ./src
+COPY --from=index-builder /approved-index ./approved-index
+RUN uv sync --frozen --no-dev
+ENV AI_GATEWAY_CORPUS_MANIFEST_PATH=/app/approved-index/manifest.json
+USER gateway
+EXPOSE 4000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 CMD ["/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/readiness', timeout=2)"]
+CMD ["/app/.venv/bin/ai-gateway"]

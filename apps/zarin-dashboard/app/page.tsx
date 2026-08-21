@@ -32,7 +32,8 @@ export default function DashboardPage() {
             <p className="mb-1 text-sm text-zinc-500">نسخه پایه هکاتون</p>
             <h1 className="m-0 text-2xl font-bold">داشبورد تحلیل پذیرنده</h1>
             <p className="text-sm text-zinc-600">
-              پوسته محصول آماده است و تحلیل‌های قابل ردیابی در مرحله داده اضافه می‌شوند.
+              پوسته محصول آماده است و تحلیل‌های قابل ردیابی در مرحله داده اضافه
+              می‌شوند.
             </p>
           </header>
 
@@ -40,7 +41,10 @@ export default function DashboardPage() {
             <Database aria-hidden="true" />
             <div>
               <strong>مجموعه‌داده هنوز بارگذاری نشده است</strong>
-              <p>اعداد ساختگی نمایش داده نمی‌شوند؛ همه شاخص‌ها بعداً از داده رسمی محاسبه و قابل پیگیری خواهند بود.</p>
+              <p>
+                اعداد ساختگی نمایش داده نمی‌شوند؛ همه شاخص‌ها بعداً از داده رسمی
+                محاسبه و قابل پیگیری خواهند بود.
+              </p>
             </div>
           </section>
 
@@ -58,13 +62,19 @@ export default function DashboardPage() {
             ))}
           </section>
 
-          <section className="assistant-deferred" data-testid="zarinpal-assistant-deferred">
-            <div className="assistant-deferred__icon"><LockKeyhole aria-hidden="true" /></div>
+          <section
+            className="assistant-deferred"
+            data-testid="zarinpal-assistant-deferred"
+          >
+            <div className="assistant-deferred__icon">
+              <LockKeyhole aria-hidden="true" />
+            </div>
             <div>
               <p className="eyebrow">مرحله آینده</p>
               <h2>دستیار تحلیلی زرین‌پال</h2>
               <p>
-                این قابلیت پس از دریافت مجموعه‌داده رسمی و تعریف قواعد تحلیل فعال می‌شود تا هیچ پاسخ یا بینش بدون پشتوانه داده ارائه نشود.
+                این قابلیت پس از دریافت مجموعه‌داده رسمی و تعریف قواعد تحلیل
+                فعال می‌شود تا هیچ پاسخ یا بینش بدون پشتوانه داده ارائه نشود.
               </p>
               <Button type="button" disabled>
                 پس از دریافت مجموعه‌داده رسمی فعال می‌شود

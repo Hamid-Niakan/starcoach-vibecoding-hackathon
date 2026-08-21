@@ -26,7 +26,9 @@ export function requestIdFrom(response: Response): string | undefined {
   return value && value.length <= 128 ? value : undefined;
 }
 
-export async function errorFromResponse(response: Response): Promise<GatewayClientError> {
+export async function errorFromResponse(
+  response: Response,
+): Promise<GatewayClientError> {
   const requestId = requestIdFrom(response);
   const body: unknown = await response.json().catch(() => undefined);
   const parsed = openAIErrorResponseSchema.safeParse(body);
@@ -39,5 +41,12 @@ export async function errorFromResponse(response: Response): Promise<GatewayClie
     );
   }
   const { message, code, type, param } = parsed.data.error;
-  return new GatewayClientError(message, response.status, code, requestId, type, param);
+  return new GatewayClientError(
+    message,
+    response.status,
+    code,
+    requestId,
+    type,
+    param,
+  );
 }

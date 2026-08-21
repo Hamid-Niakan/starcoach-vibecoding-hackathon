@@ -1,0 +1,226 @@
+openapi: 3.1.0
+info:
+  title: Liara Grounded Assistant Consumer Profile
+  version: 2.0.0
+  description: >-
+    Additive Liara consumer profile layered on the feature-006 OpenAI-compatible gateway contract.
+    Generic OpenAI clients may ignore x_liara. Liara consumers validate it strictly. Existing
+    request, error, health, request-ID, SSE framing, and [DONE] semantics remain unchanged.
+x-contract-role: liara-consumer-profile
+security: []
+paths:
+  /v1/models:
+    get:
+      operationId: listModels
+      summary: List exactly one stable public alias
+      responses:
+        "200":
+          description: Exactly one public model; protected provider identities are absent
+  /v1/chat/completions:
+    post:
+      operationId: createGroundedChatCompletion
+      summary: Create a stateless grounded Liara completion
+      description: >-
+        Requests use the feature-006 ChatCompletionRequest. Non-stream responses contain x_liara.
+        Streaming responses contain ordinary OpenAI delta chunks, exactly one terminal JSON chunk
+        carrying x_liara, then exactly one data: [DONE]. A post-header failure terminates without
+        [DONE] and is handled as an incomplete stream.
+      responses:
+        "200":
+          description: Grounded non-stream completion or bounded OpenAI-compatible SSE stream
+          headers:
+            x-request-id:
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroundedChatCompletion"
+            text/event-stream:
+              schema:
+                type: string
+                x-data-event-schema:
+                  oneOf:
+                    - $ref: "#/components/schemas/DeltaChunk"
+                    - $ref: "#/components/schemas/LiaraTerminalChunk"
+        "400": { description: Sanitized OpenAI-compatible invalid request }
+        "413":
+          { description: Sanitized OpenAI-compatible bounded-payload rejection }
+        "429":
+          description: Sanitized OpenAI-compatible rate, quota, concurrency, or budget rejection
+        "500": { description: Sanitized internal error }
+        "502":
+          { description: Sanitized malformed or unavailable upstream response }
+        "503":
+          { description: Enforcement or approved-index state is unavailable }
+        "504": { description: Total request lifetime expired }
+  /health/readiness:
+    get:
+      operationId: getReadiness
+      description: >-
+        Ready only when Redis enforcement and one compatible approved index revision can make safe
+        admission/grounding decisions. Upstream generation reachability remains request-time.
+      responses:
+        "200": { description: Enforcement and approved index are ready }
+        "503": { description: Sanitized not-ready state }
+  /metrics:
+    get:
+      operationId: getMetrics
+      summary: Scrape content-free operator metrics
+      security:
+        - MetricsBearer: []
+      responses:
+        "200":
+          description: Prometheus text format with Cache-Control no-store and no CORS exposure
+        "401":
+          description: Missing or invalid dedicated metrics token; constant-time sanitized response
+components:
+  securitySchemes:
+    MetricsBearer:
+      type: http
+      scheme: bearer
+      description: Dedicated operator secret, never the provider credential
+  schemas:
+    GroundedChatCompletion:
+      allOf:
+        - type: object
+          required: [id, object, created, model, choices]
+          properties:
+            id: { type: string }
+            object: { const: chat.completion }
+            created: { type: integer }
+            model: { type: string }
+            choices: { type: array }
+            usage: { type: object }
+        - type: object
+          required: [x_liara]
+          properties:
+            x_liara: { $ref: "#/components/schemas/LiaraAssistantMetadataV1" }
+    DeltaChunk:
+      type: object
+      required: [id, object, created, model, choices]
+      properties:
+        id: { type: string }
+        object: { const: chat.completion.chunk }
+        created: { type: integer }
+        model: { type: string }
+        choices: { type: array, minItems: 1 }
+      not:
+        required: [x_liara]
+    LiaraTerminalChunk:
+      type: object
+      additionalProperties: true
+      required: [id, object, created, model, choices, x_liara]
+      properties:
+        id: { type: string }
+        object: { const: chat.completion.chunk }
+        created: { type: integer }
+        model: { type: string }
+        choices: { type: array, maxItems: 0 }
+        x_liara: { $ref: "#/components/schemas/LiaraAssistantMetadataV1" }
+    LiaraAssistantMetadataV1:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          schema_version,
+          documentation_revision,
+          intent,
+          answer_path,
+          citations,
+          next_steps,
+          reuse,
+        ]
+      properties:
+        schema_version: { const: 1 }
+        documentation_revision: { type: string, pattern: "^[a-f0-9]{64}$" }
+        intent:
+          type: object
+          additionalProperties: false
+          required: [kind, missing_fields, topic_changed]
+          properties:
+            kind:
+              enum:
+                [direct, complex, clarify, abstain, out_of_scope, elevated_risk]
+            missing_fields:
+              type: array
+              maxItems: 5
+              uniqueItems: true
+              items:
+                {
+                  enum:
+                    [
+                      service,
+                      runtime,
+                      version,
+                      environment,
+                      goal,
+                      error_context,
+                    ],
+                }
+            topic_changed: { type: boolean }
+        answer_path:
+          { enum: [generated, clarification, abstention, exact_cache] }
+        citations:
+          type: array
+          maxItems: 12
+          items: { $ref: "#/components/schemas/Citation" }
+        next_steps:
+          type: array
+          maxItems: 3
+          items: { $ref: "#/components/schemas/NextStep" }
+        workflow:
+          oneOf:
+            - { $ref: "#/components/schemas/Workflow" }
+            - { type: "null" }
+        reuse: { enum: [none, retrieval, reviewed_exact_answer] }
+    Citation:
+      type: object
+      additionalProperties: false
+      required:
+        [id, marker, passage_id, title, url, documentation_revision, validation]
+      properties:
+        id: { type: string, pattern: "^c[1-9][0-9]?$" }
+        marker: { type: integer, minimum: 1, maximum: 12 }
+        passage_id: { type: string, minLength: 16, maxLength: 128 }
+        title: { type: string, minLength: 1, maxLength: 240 }
+        url:
+          type: string
+          format: uri
+          pattern: "^https://docs\\.liara\\.ir/"
+        heading: { type: [string, "null"], maxLength: 240 }
+        documentation_revision: { type: string, pattern: "^[a-f0-9]{64}$" }
+        validation: { const: valid }
+    NextStep:
+      type: object
+      additionalProperties: false
+      required: [id, label]
+      properties:
+        id: { type: string, minLength: 1, maxLength: 64 }
+        label: { type: string, minLength: 1, maxLength: 160 }
+        prompt: { type: string, minLength: 1, maxLength: 500 }
+        url: { type: string, pattern: "^https://docs\\.liara\\.ir/" }
+      oneOf:
+        - required: [prompt]
+        - required: [url]
+    Workflow:
+      type: object
+      additionalProperties: false
+      required: [id, goal, steps]
+      properties:
+        id: { type: string, minLength: 1, maxLength: 64 }
+        goal: { type: string, minLength: 1, maxLength: 240 }
+        steps:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, label, status]
+            properties:
+              id: { type: string, minLength: 1, maxLength: 64 }
+              label: { type: string, minLength: 1, maxLength: 240 }
+              status: { enum: [pending, current, completed, blocked] }
+              verification: { type: [string, "null"], maxLength: 500 }

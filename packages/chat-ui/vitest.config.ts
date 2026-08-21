@@ -4,8 +4,12 @@ import { fileURLToPath } from "node:url";
 export default defineConfig({
   resolve: {
     alias: {
-      "@hackathon/api-client": fileURLToPath(new URL("../api-client/src/index.ts", import.meta.url)),
-      "@hackathon/contracts": fileURLToPath(new URL("../contracts/src/index.ts", import.meta.url)),
+      "@hackathon/api-client": fileURLToPath(
+        new URL("../api-client/src/index.ts", import.meta.url),
+      ),
+      "@hackathon/contracts": fileURLToPath(
+        new URL("../contracts/src/index.ts", import.meta.url),
+      ),
     },
   },
   test: {

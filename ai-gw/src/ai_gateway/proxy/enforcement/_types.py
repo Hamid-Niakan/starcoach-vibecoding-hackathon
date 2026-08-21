@@ -13,6 +13,7 @@ class RateLimitType(StrEnum):
     GLOBAL_TPM = "global_tpm"
     GLOBAL_CONCURRENCY = "global_concurrency"
     GLOBAL_QUOTA = "global_quota"
+    GLOBAL_COST = "global_cost"
 
 
 class AdmissionReason(StrEnum):
@@ -68,3 +69,4 @@ class AdmissionDecision:
 class UsageReservation:
     reservation_id: str
     reserved_tokens: int
+    reserved_cost_micro_units: int = 0

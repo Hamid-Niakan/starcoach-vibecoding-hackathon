@@ -1,4 +1,9 @@
-import { chatCompletionChunkResponseSchema, type ChatCompletionChunk } from "@hackathon/contracts";
+import {
+  chatCompletionChunkResponseSchema,
+  liaraTerminalChunkSchema,
+  type ChatCompletionChunk,
+  type LiaraAssistantMetadataV1,
+} from "@hackathon/contracts";
 
 import { GatewayClientError, requestIdFrom } from "./errors.js";
 
@@ -23,6 +28,14 @@ export interface ParseStreamOptions {
   limits?: Partial<StreamLimits>;
 }
 
+export type LiaraStreamEvent =
+  | { type: "chunk"; chunk: ChatCompletionChunk; requestId?: string }
+  | {
+      type: "metadata";
+      metadata: LiaraAssistantMetadataV1;
+      requestId?: string;
+    };
+
 const bytes = (value: string) => new TextEncoder().encode(value).byteLength;
 
 function abortError(): DOMException {
@@ -34,7 +47,12 @@ export async function* parseOpenAIStream(
   options: ParseStreamOptions = {},
 ): AsyncGenerator<ChatCompletionChunk> {
   if (!response.body) {
-    throw new GatewayClientError("جریان پاسخ در دسترس نیست.", response.status, "invalid_stream", requestIdFrom(response));
+    throw new GatewayClientError(
+      "جریان پاسخ در دسترس نیست.",
+      response.status,
+      "invalid_stream",
+      requestIdFrom(response),
+    );
   }
   const limits = { ...DEFAULT_STREAM_LIMITS, ...options.limits };
   const reader = response.body.getReader();
@@ -45,7 +63,8 @@ export async function* parseOpenAIStream(
   let eventCount = 0;
   let textBytes = 0;
   let terminal = false;
-  const onAbort = () => void reader.cancel(options.signal?.reason).catch(() => undefined);
+  const onAbort = () =>
+    void reader.cancel(options.signal?.reason).catch(() => undefined);
   options.signal?.addEventListener("abort", onAbort, { once: true });
 
   try {
@@ -65,15 +84,30 @@ export async function* parseOpenAIStream(
       }
       streamBytes += result.value.byteLength;
       if (streamBytes > limits.maxStreamBytes) {
-        throw new GatewayClientError("حجم جریان پاسخ بیش از حد مجاز است.", 200, "stream_limit_exceeded", requestId);
+        throw new GatewayClientError(
+          "حجم جریان پاسخ بیش از حد مجاز است.",
+          200,
+          "stream_limit_exceeded",
+          requestId,
+        );
       }
       try {
         buffer += decoder.decode(result.value, { stream: true });
       } catch {
-        throw new GatewayClientError("رمزگذاری جریان پاسخ معتبر نیست.", 200, "invalid_stream", requestId);
+        throw new GatewayClientError(
+          "رمزگذاری جریان پاسخ معتبر نیست.",
+          200,
+          "invalid_stream",
+          requestId,
+        );
       }
       if (bytes(buffer) > limits.maxBufferBytes) {
-        throw new GatewayClientError("بافر جریان پاسخ بیش از حد مجاز است.", 200, "stream_limit_exceeded", requestId);
+        throw new GatewayClientError(
+          "بافر جریان پاسخ بیش از حد مجاز است.",
+          200,
+          "stream_limit_exceeded",
+          requestId,
+        );
       }
 
       while (true) {
@@ -82,7 +116,12 @@ export async function* parseOpenAIStream(
         const rawEvent = buffer.slice(0, boundary.index);
         buffer = buffer.slice(boundary.index + boundary[0].length);
         if (bytes(rawEvent) > limits.maxEventBytes) {
-          throw new GatewayClientError("رویداد جریان پاسخ بیش از حد مجاز است.", 200, "stream_limit_exceeded", requestId);
+          throw new GatewayClientError(
+            "رویداد جریان پاسخ بیش از حد مجاز است.",
+            200,
+            "stream_limit_exceeded",
+            requestId,
+          );
         }
         const data = rawEvent
           .split(/\r?\n/)
@@ -97,32 +136,108 @@ export async function* parseOpenAIStream(
         }
         eventCount += 1;
         if (eventCount > limits.maxEvents) {
-          throw new GatewayClientError("تعداد رویدادهای پاسخ بیش از حد مجاز است.", 200, "stream_limit_exceeded", requestId);
+          throw new GatewayClientError(
+            "تعداد رویدادهای پاسخ بیش از حد مجاز است.",
+            200,
+            "stream_limit_exceeded",
+            requestId,
+          );
         }
         let json: unknown;
-        try { json = JSON.parse(data); } catch {
-          throw new GatewayClientError("قالب جریان پاسخ معتبر نیست.", 200, "invalid_stream", requestId);
+        try {
+          json = JSON.parse(data);
+        } catch {
+          throw new GatewayClientError(
+            "قالب جریان پاسخ معتبر نیست.",
+            200,
+            "invalid_stream",
+            requestId,
+          );
         }
         const parsed = chatCompletionChunkResponseSchema.safeParse(json);
         if (!parsed.success) {
-          throw new GatewayClientError("ساختار جریان پاسخ معتبر نیست.", 200, "invalid_stream", requestId);
+          throw new GatewayClientError(
+            "ساختار جریان پاسخ معتبر نیست.",
+            200,
+            "invalid_stream",
+            requestId,
+          );
         }
         for (const choice of parsed.data.choices) {
           const content = choice.delta.content;
           if (content) textBytes += bytes(content);
         }
         if (textBytes > limits.maxTextBytes) {
-          throw new GatewayClientError("متن پاسخ بیش از حد مجاز است.", 200, "stream_limit_exceeded", requestId);
+          throw new GatewayClientError(
+            "متن پاسخ بیش از حد مجاز است.",
+            200,
+            "stream_limit_exceeded",
+            requestId,
+          );
         }
         yield parsed.data;
       }
     }
     if (!terminal) {
-      throw new GatewayClientError("جریان پاسخ پیش از تکمیل قطع شد.", 200, "incomplete_stream", requestId);
+      throw new GatewayClientError(
+        "جریان پاسخ پیش از تکمیل قطع شد.",
+        200,
+        "incomplete_stream",
+        requestId,
+      );
     }
   } finally {
     options.signal?.removeEventListener("abort", onAbort);
     if (!terminal) await reader.cancel().catch(() => undefined);
     reader.releaseLock();
+  }
+}
+
+/**
+ * Adds the Liara grounding profile to the otherwise generic OpenAI stream.
+ * Ordinary provider extensions remain opaque; only `x_liara` is interpreted.
+ */
+export async function* parseLiaraOpenAIStream(
+  response: Response,
+  options: ParseStreamOptions = {},
+): AsyncGenerator<LiaraStreamEvent> {
+  const requestId = requestIdFrom(response);
+  let terminalSeen = false;
+  for await (const chunk of parseOpenAIStream(response, options)) {
+    if (!("x_liara" in chunk)) {
+      yield { type: "chunk", chunk, ...(requestId ? { requestId } : {}) };
+      continue;
+    }
+    if (terminalSeen) {
+      throw new GatewayClientError(
+        "فراداده پایانی تکراری است.",
+        200,
+        "duplicate_liara_metadata",
+        requestId,
+      );
+    }
+    const parsed = liaraTerminalChunkSchema.safeParse(chunk);
+    if (!parsed.success) {
+      throw new GatewayClientError(
+        "فراداده منابع پاسخ معتبر نیست.",
+        200,
+        "invalid_liara_metadata",
+        requestId,
+      );
+    }
+    terminalSeen = true;
+    yield {
+      type: "metadata",
+      metadata: parsed.data.x_liara,
+      ...(requestId ? { requestId } : {}),
+    };
+  }
+  if (!terminalSeen) {
+    throw new GatewayClientError(
+      "فراداده منابع پاسخ دریافت نشد.",
+      200,
+      "missing_liara_metadata",
+      requestId,
+    );
   }
 }

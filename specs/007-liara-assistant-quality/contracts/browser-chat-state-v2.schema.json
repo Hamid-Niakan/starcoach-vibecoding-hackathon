@@ -1,0 +1,299 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hackathon.local/contracts/liara-browser-chat-state-v2.json",
+  "title": "Liara Browser Chat State V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "model",
+    "messages",
+    "preferences",
+    "active_workflow",
+    "feedback",
+    "updated_at"
+  ],
+  "properties": {
+    "version": { "const": 2 },
+    "model": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
+    "messages": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/message" }
+    },
+    "preferences": { "$ref": "#/$defs/preferences" },
+    "active_workflow": {
+      "oneOf": [{ "$ref": "#/$defs/workflow" }, { "type": "null" }]
+    },
+    "feedback": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/feedback" }
+    },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "turn_id", "role", "content", "status", "created_at"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "turn_id": { "type": "string", "format": "uuid" },
+        "role": { "enum": ["user", "assistant"] },
+        "content": { "type": "string", "maxLength": 65536 },
+        "status": { "enum": ["completed", "streaming", "stopped", "failed"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "error_code": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "request_id": { "type": "string", "format": "uuid" },
+        "metadata": { "$ref": "#/$defs/metadata" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "role": { "const": "user" } },
+            "required": ["role"]
+          },
+          "then": {
+            "properties": {
+              "status": { "const": "completed" },
+              "content": { "minLength": 1 }
+            },
+            "not": {
+              "anyOf": [
+                { "required": ["metadata"] },
+                { "required": ["error_code"] },
+                { "required": ["request_id"] }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "failed" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": { "role": { "const": "assistant" } },
+            "required": ["error_code"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "enum": ["streaming", "stopped"] } },
+            "required": ["status"]
+          },
+          "then": { "properties": { "role": { "const": "assistant" } } }
+        }
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "documentation_revision",
+        "intent",
+        "answer_path",
+        "citations",
+        "next_steps",
+        "reuse"
+      ],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "documentation_revision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "intent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "missing_fields", "topic_changed"],
+          "properties": {
+            "kind": {
+              "enum": [
+                "direct",
+                "complex",
+                "clarify",
+                "abstain",
+                "out_of_scope",
+                "elevated_risk"
+              ]
+            },
+            "missing_fields": {
+              "type": "array",
+              "maxItems": 5,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "service",
+                  "runtime",
+                  "version",
+                  "environment",
+                  "goal",
+                  "error_context"
+                ]
+              }
+            },
+            "topic_changed": { "type": "boolean" }
+          }
+        },
+        "answer_path": {
+          "enum": ["generated", "clarification", "abstention", "exact_cache"]
+        },
+        "citations": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "marker",
+              "passage_id",
+              "title",
+              "url",
+              "documentation_revision",
+              "validation"
+            ],
+            "properties": {
+              "id": { "type": "string", "pattern": "^c[1-9][0-9]?$" },
+              "marker": { "type": "integer", "minimum": 1, "maximum": 12 },
+              "passage_id": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 128
+              },
+              "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+              "url": {
+                "type": "string",
+                "pattern": "^https://docs\\.liara\\.ir/"
+              },
+              "heading": { "type": ["string", "null"], "maxLength": 240 },
+              "documentation_revision": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "validation": { "const": "valid" }
+            }
+          }
+        },
+        "next_steps": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+              "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+              "prompt": { "type": "string", "minLength": 1, "maxLength": 500 },
+              "url": {
+                "type": "string",
+                "pattern": "^https://docs\\.liara\\.ir/"
+              }
+            },
+            "oneOf": [{ "required": ["prompt"] }, { "required": ["url"] }]
+          }
+        },
+        "workflow": {
+          "oneOf": [{ "$ref": "#/$defs/workflowMetadata" }, { "type": "null" }]
+        },
+        "reuse": { "enum": ["none", "retrieval", "reviewed_exact_answer"] }
+      }
+    },
+    "preferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "experience", "service", "explicit"],
+      "properties": {
+        "language": { "enum": ["auto", "fa", "en"] },
+        "experience": { "enum": ["unknown", "novice", "experienced"] },
+        "service": { "type": ["string", "null"], "maxLength": 64 },
+        "explicit": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 3,
+          "items": { "enum": ["language", "experience", "service"] }
+        }
+      }
+    },
+    "workflowMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "goal", "steps"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "goal": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label", "status"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+              "label": { "type": "string", "minLength": 1, "maxLength": 240 },
+              "status": {
+                "enum": ["pending", "current", "completed", "blocked"]
+              },
+              "verification": { "type": ["string", "null"], "maxLength": 500 }
+            }
+          }
+        }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "goal", "steps", "source_turn_id", "updated_at"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "goal": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label", "status"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+              "label": { "type": "string", "minLength": 1, "maxLength": 240 },
+              "status": {
+                "enum": ["pending", "current", "completed", "blocked"]
+              },
+              "verification": { "type": ["string", "null"], "maxLength": 500 }
+            }
+          }
+        },
+        "source_turn_id": { "type": "string", "format": "uuid" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "feedback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assistant_message_id", "value", "created_at"],
+      "properties": {
+        "assistant_message_id": { "type": "string", "format": "uuid" },
+        "value": { "enum": ["helpful", "unhelpful"] },
+        "reason": {
+          "enum": [
+            "incorrect",
+            "missing_detail",
+            "bad_source",
+            "unclear",
+            "other"
+          ]
+        },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "$comment": "Zod parity validation additionally enforces unique IDs, strict user/assistant turn adjacency, at most one streaming assistant, metadata only on completed assistants, revision equality across citations, feedback references, workflow step uniqueness/current-count, non-default preferences listed as explicit, and stable restore normalization streaming->stopped."
+}

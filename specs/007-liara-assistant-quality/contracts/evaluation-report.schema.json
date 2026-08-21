@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hackathon.local/contracts/liara-evaluation-report-v1.json",
+  "title": "Liara Evaluation Report V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "schema_version",
+    "started_at",
+    "completed_at",
+    "git_sha",
+    "documentation_revision",
+    "pipeline_digest",
+    "dataset_version",
+    "split",
+    "status",
+    "aggregate",
+    "case_results",
+    "gate_results",
+    "artifact_checksums"
+  ],
+  "properties": {
+    "run_id": { "type": "string", "format": "uuid" },
+    "schema_version": { "const": 1 },
+    "started_at": { "type": "string", "format": "date-time" },
+    "completed_at": { "type": ["string", "null"], "format": "date-time" },
+    "git_sha": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "documentation_revision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "pipeline_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "dataset_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "split": {
+      "enum": ["baseline", "tuning", "held_out", "repeated_workload", "staging"]
+    },
+    "status": {
+      "enum": ["running", "awaiting_human_review", "accepted", "rejected"]
+    },
+    "aggregate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_count",
+        "simple_accuracy",
+        "complex_accuracy",
+        "citation_coverage",
+        "citation_destination_validity",
+        "abstention_safety",
+        "clarification_accuracy",
+        "context_accuracy",
+        "ttft_p95_ms",
+        "total_latency_p95_ms",
+        "input_tokens",
+        "output_tokens",
+        "estimated_cost_micro_units",
+        "cache_hit_rate"
+      ],
+      "properties": {
+        "case_count": { "type": "integer", "minimum": 0 },
+        "simple_accuracy": { "$ref": "#/$defs/ratio" },
+        "complex_accuracy": { "$ref": "#/$defs/ratio" },
+        "citation_coverage": { "$ref": "#/$defs/ratio" },
+        "citation_destination_validity": { "$ref": "#/$defs/ratio" },
+        "abstention_safety": { "$ref": "#/$defs/ratio" },
+        "clarification_accuracy": { "$ref": "#/$defs/ratio" },
+        "context_accuracy": { "$ref": "#/$defs/ratio" },
+        "ttft_p95_ms": { "type": "integer", "minimum": 0 },
+        "total_latency_p95_ms": { "type": "integer", "minimum": 0 },
+        "input_tokens": { "type": "integer", "minimum": 0 },
+        "output_tokens": { "type": "integer", "minimum": 0 },
+        "estimated_cost_micro_units": { "type": "integer", "minimum": 0 },
+        "cache_hit_rate": { "$ref": "#/$defs/ratio" },
+        "quality_regression_percentage_points": { "type": "number" },
+        "cost_reduction_ratio": { "$ref": "#/$defs/ratio" }
+      }
+    },
+    "case_results": { "type": "array", "items": { "type": "object" } },
+    "gate_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["gate", "status", "evidence"],
+        "properties": {
+          "gate": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "status": { "enum": ["pass", "fail", "blocked"] },
+          "evidence": { "type": "string", "minLength": 1, "maxLength": 500 }
+        }
+      }
+    },
+    "artifact_checksums": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[A-Za-z0-9_.-]{1,128}$" },
+      "additionalProperties": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+    },
+    "reviewer": { "type": ["string", "null"], "maxLength": 128 }
+  },
+  "$defs": {
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

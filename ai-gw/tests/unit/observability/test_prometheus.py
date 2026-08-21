@@ -12,7 +12,7 @@ def test_private_registry_has_only_fixed_gateway_families_and_zero_labels() -> N
     assert "ai_gateway_chat_requests_total" in body
     for outcome in RequestOutcome:
         assert f'outcome="{outcome.value}"' in body
-    assert sum(len(family.samples) for family in families) == 363
+    assert sum(len(family.samples) for family in families) == 735
     assert not any(sample.name.endswith("_created") for family in families for sample in family.samples)
 
 

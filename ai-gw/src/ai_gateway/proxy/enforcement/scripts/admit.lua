@@ -25,6 +25,10 @@ local gtpm = prefix .. ':global:tpm:' .. minute
 local gquota = prefix .. ':global:quota:' .. global_quota_id
 local gconc = prefix .. ':global:concurrency'
 local reservation = prefix .. ':reservation:' .. reservation_id
+local reserve_cost = tonumber(ARGV[17])
+local daily_cost_limit = tonumber(ARGV[18])
+local day = math.floor(now / 86400)
+local daily_cost = prefix .. ':global:cost:' .. day
 
 redis.call('ZREMRANGEBYSCORE', cconc, '-inf', now)
 redis.call('ZREMRANGEBYSCORE', gconc, '-inf', now)
@@ -44,6 +48,9 @@ for _, check in ipairs(checks) do
 end
 if redis.call('ZCARD', cconc) >= tonumber(ARGV[9]) then return {0, 'client_concurrency', 1} end
 if redis.call('ZCARD', gconc) >= tonumber(ARGV[14]) then return {0, 'global_concurrency', 1} end
+if tonumber(redis.call('GET', daily_cost) or '0') + reserve_cost > daily_cost_limit then
+  return {0, 'global_cost', 86400 - (now % 86400)}
+end
 
 for _, check in ipairs(checks) do
   redis.call('INCRBY', check[1], check[2])
@@ -53,6 +60,8 @@ redis.call('ZADD', cconc, now + lease_seconds, reservation_id)
 redis.call('ZADD', gconc, now + lease_seconds, reservation_id)
 redis.call('EXPIRE', cconc, lease_seconds * 2)
 redis.call('EXPIRE', gconc, lease_seconds * 2)
-redis.call('HSET', reservation, 'state', 'open', 'reserved', reserve, 'ctpm', ctpm, 'cquota', cquota, 'gtpm', gtpm, 'gquota', gquota, 'cconc', cconc, 'gconc', gconc)
+redis.call('INCRBY', daily_cost, reserve_cost)
+redis.call('EXPIRE', daily_cost, 86400 - (now % 86400) + lease_seconds)
+redis.call('HSET', reservation, 'state', 'open', 'reserved', reserve, 'reserved_cost', reserve_cost, 'cost_key', daily_cost, 'ctpm', ctpm, 'cquota', cquota, 'gtpm', gtpm, 'gquota', gquota, 'cconc', cconc, 'gconc', gconc)
 redis.call('EXPIRE', reservation, math.max(client_quota_window, global_quota_window) + lease_seconds)
 return {1, 'allowed', 0}

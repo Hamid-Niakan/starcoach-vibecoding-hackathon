@@ -21,9 +21,11 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+  "jsonschema>=4.23,<5",
   "mypy>=1.14,<2",
   "openai>=1.68,<3",
   "openapi-spec-validator>=0.7,<1",
+  "pyyaml>=6,<7",
   "pytest>=8.3,<9",
   "pytest-asyncio>=0.25,<2",
   "respx>=0.22,<1",
@@ -42,8 +44,11 @@ addopts = "-ra --strict-markers"
 asyncio_mode = "auto"
 testpaths = ["tests"]
 markers = [
+  "evaluation: deterministic or live Liara evaluation",
   "integration: requires local integration dependencies",
+  "meilisearch: requires a compatible Meilisearch instance",
   "redis: requires Redis",
+  "security: adversarial or redaction validation",
   "performance: explicit performance/release gate",
   "long_running: explicit longevity gate",
 ]

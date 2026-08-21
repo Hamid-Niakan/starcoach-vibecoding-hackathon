@@ -9,7 +9,10 @@ from tests.support import FakeLimiter
 
 
 @pytest.mark.asyncio
-async def test_metrics_endpoint_is_sanitized_and_outside_openapi(gateway_env: dict[str, str]) -> None:
+async def test_metrics_endpoint_is_sanitized_and_outside_openapi(
+    gateway_env: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AI_GATEWAY_ALLOW_UNAUTHENTICATED_METRICS", "true")
     app = create_app(load_config(), limiter=FakeLimiter())
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://gateway") as client:
         response = await client.get("/metrics")

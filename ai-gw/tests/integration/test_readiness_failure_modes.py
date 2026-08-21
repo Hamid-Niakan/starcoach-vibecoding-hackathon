@@ -31,6 +31,7 @@ async def test_readiness_recovers_only_after_redis_and_marker_recover(gateway_en
     store = await real_redis_store(load_config())
     original_get = store.redis.get
     try:
+
         async def unavailable(_: str) -> str | None:
             raise RedisConnectionError("fixture outage")
 

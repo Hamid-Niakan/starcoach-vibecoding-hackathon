@@ -2,7 +2,13 @@
 .github
 .agents
 .specify
-specs
+# The index-builder images validate artifacts against this feature contract.
+# Keep every other specification out of the root Docker build context.
+specs/*
+!specs/007-liara-assistant-quality/
+specs/007-liara-assistant-quality/*
+!specs/007-liara-assistant-quality/contracts/
+!specs/007-liara-assistant-quality/contracts/**
 node_modules
 **/node_modules
 **/.next
@@ -11,10 +17,14 @@ node_modules
 **/build
 .turbo
 **/.turbo
+.artifacts
+.liara-index
 **/*.tsbuildinfo
 coverage
 test-results
 playwright-report
+evals/liara/reports
+evals/liara/private
 .env*
 data/zarinpal/*
 *.duckdb*

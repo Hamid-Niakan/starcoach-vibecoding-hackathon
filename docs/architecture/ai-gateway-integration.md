@@ -4,10 +4,10 @@ This integration preserves both source histories rather than copying one impleme
 other. The integration branch was created from the monorepo foundation and merged the gateway
 branch without rewriting either source branch.
 
-| Input | Pinned source commit | Role after integration |
-| --- | --- | --- |
+| Input                       | Pinned source commit                       | Role after integration                                  |
+| --------------------------- | ------------------------------------------ | ------------------------------------------------------- |
 | `codex/monorepo-foundation` | `ea3585676596ecd52b96746c4349ca19c68d0b4d` | Next.js frontends, workspace, and documentation history |
-| `feat/ai-gateway-backend` | `147887d23f78865fe718971a2bbd9e787bb54e72` | Authoritative FastAPI/OpenAI-compatible backend |
+| `feat/ai-gateway-backend`   | `147887d23f78865fe718971a2bbd9e787bb54e72` | Authoritative FastAPI/OpenAI-compatible backend         |
 
 Merge commit `536e54fa` joins these histories. The source tips above were not changed by the merge;
 `scripts/check-integration-ancestry.mjs` verifies that both commit objects are ancestors of the

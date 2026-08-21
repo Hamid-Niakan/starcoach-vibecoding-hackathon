@@ -29,6 +29,14 @@ REQUEST_FIELDS = {
     "output_tokens",
     "charged_tokens",
     "retry_after_seconds",
+    "grounding_route",
+    "revision_digest",
+    "retrieval_count",
+    "retrieval_tokens",
+    "cache_outcome",
+    "ttft_seconds",
+    "estimated_cost_micro_units",
+    "budget_result",
 }
 LIFECYCLE_FIELDS = {
     "deployment_id",

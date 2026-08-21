@@ -51,9 +51,7 @@ async def test_incomplete_or_malformed_upstream_stream_never_gets_public_done(
     config = load_config()
     app = create_app(config, provider=OpenAICompatible(config, httpx.MockTransport(upstream)), limiter=limiter)
     processor = app.state.request_processing
-    payload = ProxyChatCompletionRequest(
-        model="test-chat", messages=[{"role": "user", "content": "hi"}], stream=True
-    )
+    payload = ProxyChatCompletionRequest(model="test-chat", messages=[{"role": "user", "content": "hi"}], stream=True)
     response, reservation = await processor.create_response(payload, "request-id", "client-id")
     public_chunks = [chunk async for chunk in processor.stream_response(response, reservation)]
 
@@ -75,9 +73,7 @@ async def test_first_upstream_done_is_normalized_and_closes_extra_events(gateway
     config = load_config()
     app = create_app(config, provider=OpenAICompatible(config, httpx.MockTransport(upstream)), limiter=limiter)
     processor = app.state.request_processing
-    payload = ProxyChatCompletionRequest(
-        model="test-chat", messages=[{"role": "user", "content": "hi"}], stream=True
-    )
+    payload = ProxyChatCompletionRequest(model="test-chat", messages=[{"role": "user", "content": "hi"}], stream=True)
     response, reservation = await processor.create_response(payload, "request-id", "client-id")
     public_chunks = [chunk async for chunk in processor.stream_response(response, reservation)]
 
@@ -104,16 +100,12 @@ async def test_consumer_cancellation_closes_upstream_and_reconciles_once(gateway
     stream = BlockingStream()
 
     async def upstream(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
-            200, headers={"content-type": "text/event-stream"}, stream=stream, request=request
-        )
+        return httpx.Response(200, headers={"content-type": "text/event-stream"}, stream=stream, request=request)
 
     config = load_config()
     app = create_app(config, provider=OpenAICompatible(config, httpx.MockTransport(upstream)), limiter=limiter)
     processor = app.state.request_processing
-    payload = ProxyChatCompletionRequest(
-        model="test-chat", messages=[{"role": "user", "content": "hi"}], stream=True
-    )
+    payload = ProxyChatCompletionRequest(model="test-chat", messages=[{"role": "user", "content": "hi"}], stream=True)
     response, reservation = await processor.create_response(payload, "request-id", "client-id")
     public_stream = processor.stream_response(response, reservation)
     first = await anext(public_stream)

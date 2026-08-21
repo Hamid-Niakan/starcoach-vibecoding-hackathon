@@ -44,6 +44,11 @@ def enforcement_marker(config: ProxyConfig) -> str:
             config.global_quota_window_seconds,
         ],
         "lifetime": [config.max_request_seconds, config.max_stream_seconds, config.reconciliation_grace_seconds],
+        "cost": [
+            config.input_cost_micro_per_million,
+            config.output_cost_micro_per_million,
+            config.daily_cost_budget_micro,
+        ],
     }
     return hashlib.sha256(json.dumps(values, sort_keys=True, separators=(",", ":"), default=str).encode()).hexdigest()
 
@@ -77,7 +82,12 @@ class RedisEnforcementStore:
         except RedisError:
             return False
 
-    async def admit(self, client_id: str, reserved_tokens: int) -> tuple[AdmissionDecision, UsageReservation | None]:
+    async def admit(
+        self,
+        client_id: str,
+        reserved_tokens: int,
+        reserved_cost_micro_units: int = 0,
+    ) -> tuple[AdmissionDecision, UsageReservation | None]:
         reservation_id = str(uuid.uuid4())
         config = self.config
         lease = config.max_stream_seconds + config.reconciliation_grace_seconds
@@ -98,6 +108,8 @@ class RedisEnforcementStore:
             config.global_max_concurrency,
             config.global_quota_tokens,
             config.global_quota_window_seconds,
+            reserved_cost_micro_units,
+            config.daily_cost_budget_micro,
         ]
         try:
             result = await self.scripts.eval_admit([self.keys.marker, self.keys.inconsistent], args)
@@ -109,15 +121,28 @@ class RedisEnforcementStore:
         if not allowed:
             return AdmissionDecision(False, reason, retry_after=retry), None
         return AdmissionDecision(True, reason, reservation_id=reservation_id), UsageReservation(
-            reservation_id, reserved_tokens
+            reservation_id, reserved_tokens, reserved_cost_micro_units
         )
 
-    async def reconcile(self, reservation: UsageReservation, actual_tokens: int | None) -> ReconciliationOutcome:
+    async def reconcile(
+        self,
+        reservation: UsageReservation,
+        actual_tokens: int | None,
+        actual_cost_micro_units: int | None = None,
+    ) -> ReconciliationOutcome:
         charged = reservation.reserved_tokens if actual_tokens is None else actual_tokens
+        charged_cost = (
+            reservation.reserved_cost_micro_units if actual_cost_micro_units is None else actual_cost_micro_units
+        )
         try:
             result = await self.scripts.eval_reconcile(
                 [self.keys.reservation(reservation.reservation_id), self.keys.inconsistent],
-                [charged, reservation.reservation_id, self.config.reconciliation_grace_seconds + 60],
+                [
+                    charged,
+                    reservation.reservation_id,
+                    self.config.reconciliation_grace_seconds + 60,
+                    charged_cost,
+                ],
             )
         except RedisError:
             return ReconciliationOutcome.CONSERVATIVE

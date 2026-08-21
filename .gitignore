@@ -25,6 +25,11 @@ __pycache__/
 *.pyc
 *.egg-info/
 .venv/
+.uv-cache/
 venv/
+.artifacts/
+.liara-index/
+evals/liara/reports/
+evals/liara/private/
 *.tmp
 *.swp

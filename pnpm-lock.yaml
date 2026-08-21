@@ -11,15 +11,39 @@ importers:
       '@playwright/test':
         specifier: 1.55.0
         version: 1.55.0
+      '@types/node':
+        specifier: 24.3.0
+        version: 24.3.0
+      ajv:
+        specifier: 8.20.0
+        version: 8.20.0
+      ajv-formats:
+        specifier: 2.1.1
+        version: 2.1.1(ajv@8.20.0)
+      mdast-util-to-string:
+        specifier: 4.0.0
+        version: 4.0.0
       prettier:
         specifier: 3.6.2
         version: 3.6.2
+      remark-parse:
+        specifier: 11.0.0
+        version: 11.0.0
+      tsx:
+        specifier: 4.20.5
+        version: 4.20.5
       turbo:
         specifier: 2.5.6
         version: 2.5.6
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      unified:
+        specifier: 11.0.5
+        version: 11.0.5
+      unist-util-visit:
+        specifier: 5.1.0
+        version: 5.1.0
       vitest:
         specifier: 3.2.4
         version: 3.2.4(@types/debug@4.1.13)(@types/node@24.3.0)(jiti@1.21.7)(jsdom@26.1.0)(terser@5.50.0)(tsx@4.20.5)(yaml@2.9.0)
@@ -4587,7 +4611,6 @@ snapshots:
   ajv-formats@2.1.1(ajv@8.20.0):
     optionalDependencies:
       ajv: 8.20.0
-    optional: true
 
   ajv-keywords@3.5.2(ajv@6.15.0):
     dependencies:
@@ -4613,7 +4636,6 @@ snapshots:
       fast-uri: 3.1.5
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
-    optional: true
 
   ansi-regex@5.0.1: {}
 
@@ -5146,7 +5168,6 @@ snapshots:
       '@esbuild/win32-arm64': 0.25.12
       '@esbuild/win32-ia32': 0.25.12
       '@esbuild/win32-x64': 0.25.12
-    optional: true
 
   esbuild@0.28.2:
     optionalDependencies:
@@ -5442,8 +5463,7 @@ snapshots:
 
   fast-levenshtein@2.0.6: {}
 
-  fast-uri@3.1.5:
-    optional: true
+  fast-uri@3.1.5: {}
 
   fastq@1.20.1:
     dependencies:
@@ -5914,8 +5934,7 @@ snapshots:
 
   json-schema-traverse@0.4.1: {}
 
-  json-schema-traverse@1.0.0:
-    optional: true
+  json-schema-traverse@1.0.0: {}
 
   json-stable-stringify-without-jsonify@1.0.1: {}
 
@@ -6714,8 +6733,7 @@ snapshots:
       unified: 11.0.5
       vfile: 6.0.3
 
-  require-from-string@2.0.2:
-    optional: true
+  require-from-string@2.0.2: {}
 
   resolve-from@4.0.0: {}
 
@@ -7162,7 +7180,6 @@ snapshots:
       get-tsconfig: 4.14.3
     optionalDependencies:
       fsevents: 2.3.3
-    optional: true
 
   turbo-darwin-64@2.5.6:
     optional: true

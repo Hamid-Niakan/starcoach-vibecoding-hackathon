@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ipaddress
 import os
+import re
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
@@ -59,6 +60,32 @@ class ProxyConfig(BaseModel):
     enforcement_epoch: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
     identity_secret: SecretStr
     model_max_input_tokens: int = Field(gt=0)
+
+    liara_grounding_enabled: bool = False
+    meili_url: HttpUrl | None = None
+    meili_api_key: SecretStr | None = None
+    liara_index_uid: str | None = Field(default=None, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
+    liara_corpus_revision: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    corpus_manifest_path: str | None = Field(default=None, min_length=1, max_length=1024)
+    retrieval_policy_version: str | None = Field(default=None, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
+    prompt_version: str | None = Field(default=None, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
+    cache_hmac_secret: SecretStr | None = None
+    metrics_token: SecretStr | None = None
+    allow_unauthenticated_metrics: bool = False
+    allow_insecure_local_meili: bool = False
+
+    direct_context_tokens: int = Field(default=2_500, gt=0)
+    direct_output_tokens: int = Field(default=600, gt=0)
+    complex_context_tokens: int = Field(default=6_000, gt=0)
+    complex_output_tokens: int = Field(default=1_200, gt=0)
+    clarify_output_tokens: int = Field(default=200, gt=0)
+    input_cost_micro_per_million: int = Field(default=0, ge=0)
+    output_cost_micro_per_million: int = Field(default=0, ge=0)
+    daily_cost_budget_micro: int = Field(default=1, gt=0)
+    meili_timeout_seconds: float = Field(default=3.0, gt=0)
+    retrieval_candidate_limit: int = Field(default=20, gt=0, le=100)
+    direct_passage_limit: int = Field(default=4, gt=0, le=12)
+    complex_passage_limit: int = Field(default=8, gt=0, le=12)
 
     client_rpm: int = Field(default=60, gt=0)
     client_tpm: int = Field(default=100_000, gt=0)
@@ -121,6 +148,16 @@ class ProxyConfig(BaseModel):
         if len(secret) < 32 or secret.lower().startswith("replace-with"):
             raise ValueError("identity_secret_too_short")
         return value
+
+    @field_validator("meili_api_key", "cache_hmac_secret", "metrics_token")
+    @classmethod
+    def validate_grounding_secrets(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is None:
+            return None
+        secret = value.get_secret_value().strip()
+        if len(secret) < 16 or secret.lower().startswith("replace-with"):
+            raise ValueError("protected_value_must_be_configured")
+        return SecretStr(secret)
 
     @field_validator("trusted_proxy_cidrs", "cors_allow_origins", mode="before")
     @classmethod
@@ -191,6 +228,60 @@ class ProxyConfig(BaseModel):
             self.global_quota_tokens,
         ):
             raise ValueError("reservation_exceeds_enforcement_policy")
+
+        if self.liara_grounding_enabled:
+            required_grounding = (
+                self.meili_url,
+                self.meili_api_key,
+                self.liara_index_uid,
+                self.liara_corpus_revision,
+                self.retrieval_policy_version,
+                self.prompt_version,
+                self.cache_hmac_secret,
+            )
+            if any(value is None for value in required_grounding):
+                raise ValueError("grounding_configuration_required")
+            assert self.meili_url is not None
+            meili = urlsplit(str(self.meili_url))
+            if meili.username or meili.password or meili.query or meili.fragment:
+                raise ValueError("invalid_meili_url")
+            meili_host = meili.hostname or ""
+            # Docker Compose resolves services through single-label DNS names such as
+            # `meilisearch`. Treat those names as local only behind the explicit
+            # development override; dotted/public hostnames still require HTTPS.
+            local_meili = meili_host.lower() == "localhost" or bool(
+                re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", meili_host.lower())
+            )
+            try:
+                meili_address = ipaddress.ip_address(meili_host)
+                if meili_address.is_link_local or meili_address.is_multicast or meili_address.is_unspecified:
+                    raise ValueError("unsafe_meili_address")
+                local_meili = local_meili or meili_address.is_loopback or meili_address.is_private
+            except ValueError as exc:
+                if str(exc) == "unsafe_meili_address":
+                    raise
+            if meili.scheme != "https" and not (local_meili and self.allow_insecure_local_meili):
+                raise ValueError("secure_meili_required")
+            if self.input_cost_micro_per_million <= 0 or self.output_cost_micro_per_million <= 0:
+                raise ValueError("cost_coefficients_required")
+
+        if self.direct_context_tokens > self.model_max_input_tokens:
+            raise ValueError("direct_context_exceeds_model")
+        if self.complex_context_tokens > self.model_max_input_tokens:
+            raise ValueError("complex_context_exceeds_model")
+        if self.direct_context_tokens > self.complex_context_tokens:
+            raise ValueError("direct_context_exceeds_complex")
+        if self.direct_output_tokens > self.complex_output_tokens:
+            raise ValueError("direct_output_exceeds_complex")
+        route_output_limit = max(
+            self.direct_output_tokens,
+            self.complex_output_tokens,
+            self.clarify_output_tokens,
+        )
+        if route_output_limit > self.max_output_tokens:
+            raise ValueError("route_output_exceeds_gateway")
+        if self.direct_passage_limit > self.complex_passage_limit:
+            raise ValueError("direct_passages_exceed_complex")
         return self
 
 

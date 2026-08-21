@@ -6,7 +6,7 @@ import time
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from ai_gateway.proxy.auth.anonymous_identity import derive_anonymous_client_id
-from ai_gateway.proxy.observability.events import RequestOutcome
+from ai_gateway.proxy.observability.events import BudgetResult, CacheOutcome, GroundingRoute, RequestOutcome
 from ai_gateway.proxy.observability.logging import ProxyLogging
 from ai_gateway.proxy.observability.prometheus import PrometheusLogger
 from ai_gateway.proxy.proxy_config import ProxyConfig
@@ -79,6 +79,21 @@ class InFlightRequestsMiddleware:
             outcome = final_outcome()
             if self.prometheus is not None:
                 self.prometheus.request_finished(outcome, duration)
+                grounding_route = scope.get("ai_gateway.grounding_route")
+                if grounding_route is not None:
+                    try:
+                        self.prometheus.observe_grounding(
+                            route=GroundingRoute(grounding_route),
+                            retrieval_seconds=float(scope.get("ai_gateway.retrieval_seconds", 0)),
+                            passage_count=int(scope.get("ai_gateway.retrieval_count", 0)),
+                            retrieval_tokens=int(scope.get("ai_gateway.retrieval_tokens", 0)),
+                            cache=CacheOutcome(scope.get("ai_gateway.cache_outcome", "ineligible")),
+                            ttft_seconds=float(scope.get("ai_gateway.ttft_seconds", duration)),
+                            estimated_cost_micro_units=int(scope.get("ai_gateway.estimated_cost_micro_units", 0)),
+                            budget=BudgetResult(scope.get("ai_gateway.budget_result", "allowed")),
+                        )
+                    except (TypeError, ValueError):
+                        pass
             if self.proxy_logging is not None and self.config is not None:
                 peer = scope.get("client")
                 peer_ip = peer[0] if peer else "0.0.0.0"
@@ -106,6 +121,14 @@ class InFlightRequestsMiddleware:
                     output_tokens=scope.get("ai_gateway.output_tokens"),
                     charged_tokens=scope.get("ai_gateway.charged_tokens"),
                     retry_after_seconds=scope.get("ai_gateway.retry_after_seconds"),
+                    grounding_route=scope.get("ai_gateway.grounding_route"),
+                    revision_digest=scope.get("ai_gateway.revision_digest"),
+                    retrieval_count=scope.get("ai_gateway.retrieval_count"),
+                    retrieval_tokens=scope.get("ai_gateway.retrieval_tokens"),
+                    cache_outcome=scope.get("ai_gateway.cache_outcome"),
+                    ttft_seconds=scope.get("ai_gateway.ttft_seconds"),
+                    estimated_cost_micro_units=scope.get("ai_gateway.estimated_cost_micro_units"),
+                    budget_result=scope.get("ai_gateway.budget_result"),
                 )
 
         async def lifecycle_send(message: Message) -> None:

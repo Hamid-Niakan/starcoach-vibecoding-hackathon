@@ -11,7 +11,11 @@ function fixtureGit(args: string[]) {
   if (args[0] === "rev-parse" && args[1]?.endsWith("^{commit}")) {
     return args[1].replace("^{commit}", "");
   }
-  if (args[0] === "merge-base" && args.at(-1) === "HEAD" && commits.has(args[2] ?? "")) {
+  if (
+    args[0] === "merge-base" &&
+    args.at(-1) === "HEAD" &&
+    commits.has(args[2] ?? "")
+  ) {
     return "";
   }
   if (args[0] === "show-ref") {
@@ -27,6 +31,8 @@ describe("integration provenance", () => {
   });
 
   it("fails when the selected integration head omits either source", () => {
-    expect(() => checkIntegrationAncestry(fixtureGit, "main")).toThrow("not an ancestor");
+    expect(() => checkIntegrationAncestry(fixtureGit, "main")).toThrow(
+      "not an ancestor",
+    );
   });
 });

@@ -81,6 +81,28 @@ def build_public_openapi_schema(app: FastAPI, public_model: str) -> dict[str, An
         "schema": {"type": "string", "format": "uuid"},
     }
     chat = schema["paths"]["/v1/chat/completions"]["post"]
+    grounding_enabled = bool(app.state.proxy_config.liara_grounding_enabled)
+    if grounding_enabled:
+        chat["operationId"] = "createGroundedChatCompletion"
+        metadata_schema = _liara_metadata_schema()
+        components.setdefault("schemas", {})["LiaraAssistantMetadataV1"] = metadata_schema
+        model_response = components["schemas"].get("ModelResponse")
+        if isinstance(model_response, dict):
+            model_response.setdefault("properties", {})["x_liara"] = {
+                "$ref": "#/components/schemas/LiaraAssistantMetadataV1"
+            }
+        components["schemas"]["LiaraTerminalChunk"] = {
+            "type": "object",
+            "required": ["id", "object", "created", "model", "choices", "x_liara"],
+            "properties": {
+                "id": {"type": "string"},
+                "object": {"const": "chat.completion.chunk"},
+                "created": {"type": "integer"},
+                "model": {"type": "string"},
+                "choices": {"type": "array", "maxItems": 0},
+                "x_liara": {"$ref": "#/components/schemas/LiaraAssistantMetadataV1"},
+            },
+        }
     chat["requestBody"]["content"]["application/json"]["examples"] = {
         "basic": {"value": {"model": public_model, "messages": [{"role": "user", "content": "Hello"}]}},
         "streaming": {
@@ -91,6 +113,18 @@ def build_public_openapi_schema(app: FastAPI, public_model: str) -> dict[str, An
         "schema": {
             "type": "string",
             "description": "Ordered data events followed exactly once by data: [DONE].",
+            **(
+                {
+                    "x-data-event-schema": {
+                        "oneOf": [
+                            {"type": "object", "description": "OpenAI-compatible delta chunk"},
+                            {"$ref": "#/components/schemas/LiaraTerminalChunk"},
+                        ]
+                    }
+                }
+                if grounding_enabled
+                else {}
+            ),
         },
     }
     for path, method in (("/v1/models", "get"), ("/v1/chat/completions", "post")):
@@ -105,8 +139,93 @@ def build_public_openapi_schema(app: FastAPI, public_model: str) -> dict[str, An
                 responses.pop("422", None)
                 for response in responses.values():
                     if isinstance(response, dict):
-                        response.setdefault("headers", {})["x-request-id"] = {
-                            "$ref": "#/components/headers/RequestId"
-                        }
+                        response.setdefault("headers", {})["x-request-id"] = {"$ref": "#/components/headers/RequestId"}
     app.state.public_openapi_schema = schema
     return schema
+
+
+def _liara_metadata_schema() -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "schema_version",
+            "documentation_revision",
+            "intent",
+            "answer_path",
+            "citations",
+            "next_steps",
+            "reuse",
+        ],
+        "properties": {
+            "schema_version": {"const": 1},
+            "documentation_revision": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "intent": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["kind", "missing_fields", "topic_changed"],
+                "properties": {
+                    "kind": {
+                        "enum": [
+                            "direct",
+                            "complex",
+                            "clarify",
+                            "abstain",
+                            "out_of_scope",
+                            "elevated_risk",
+                        ]
+                    },
+                    "missing_fields": {
+                        "type": "array",
+                        "maxItems": 5,
+                        "uniqueItems": True,
+                        "items": {
+                            "enum": [
+                                "service",
+                                "runtime",
+                                "version",
+                                "environment",
+                                "goal",
+                                "error_context",
+                            ]
+                        },
+                    },
+                    "topic_changed": {"type": "boolean"},
+                },
+            },
+            "answer_path": {"enum": ["generated", "clarification", "abstention", "exact_cache"]},
+            "citations": {
+                "type": "array",
+                "maxItems": 12,
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": [
+                        "id",
+                        "marker",
+                        "passage_id",
+                        "title",
+                        "url",
+                        "documentation_revision",
+                        "validation",
+                    ],
+                    "properties": {
+                        "id": {"type": "string", "pattern": "^c[1-9][0-9]?$"},
+                        "marker": {"type": "integer", "minimum": 1, "maximum": 12},
+                        "passage_id": {"type": "string", "minLength": 16, "maxLength": 128},
+                        "title": {"type": "string", "minLength": 1, "maxLength": 240},
+                        "url": {"type": "string", "pattern": "^https://docs\\.liara\\.ir/"},
+                        "heading": {"type": ["string", "null"], "maxLength": 240},
+                        "documentation_revision": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$",
+                        },
+                        "validation": {"const": "valid"},
+                    },
+                },
+            },
+            "next_steps": {"type": "array", "maxItems": 3},
+            "workflow": {"type": ["object", "null"]},
+            "reuse": {"enum": ["none", "retrieval", "reviewed_exact_answer"]},
+        },
+    }

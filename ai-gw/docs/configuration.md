@@ -4,17 +4,17 @@ The gateway reads immutable scalar `AI_GATEWAY_*` variables once at process star
 
 ## Required destination and state
 
-| Variable | Meaning |
-|---|---|
-| `AI_GATEWAY_MODEL_NAME` | Public model alias returned by `/v1/models` and accepted by chat. |
-| `AI_GATEWAY_MODEL` | Protected upstream model identifier. |
-| `AI_GATEWAY_API_BASE` | Fixed OpenAI-compatible API prefix; HTTPS unless the local-development exception is enabled. |
-| `AI_GATEWAY_API_KEY` | Provider bearer credential. Never emitted or forwarded from callers. |
-| `AI_GATEWAY_REDIS_URL` | Authoritative Redis primary. There is no local fallback. |
-| `AI_GATEWAY_DEPLOYMENT_ID` | Stable enforcement namespace. |
-| `AI_GATEWAY_ENFORCEMENT_EPOCH` | Explicit policy/identity epoch. Change it for incompatible enforcement changes. |
-| `AI_GATEWAY_IDENTITY_SECRET` | At least 32 random bytes used as the HMAC key for anonymous client identity. |
-| `AI_GATEWAY_MODEL_MAX_INPUT_TOKENS` | Provider-verified worst-case input bound reserved for every admitted request. |
+| Variable                            | Meaning                                                                                      |
+| ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| `AI_GATEWAY_MODEL_NAME`             | Public model alias returned by `/v1/models` and accepted by chat.                            |
+| `AI_GATEWAY_MODEL`                  | Protected upstream model identifier.                                                         |
+| `AI_GATEWAY_API_BASE`               | Fixed OpenAI-compatible API prefix; HTTPS unless the local-development exception is enabled. |
+| `AI_GATEWAY_API_KEY`                | Provider bearer credential. Never emitted or forwarded from callers.                         |
+| `AI_GATEWAY_REDIS_URL`              | Authoritative Redis primary. There is no local fallback.                                     |
+| `AI_GATEWAY_DEPLOYMENT_ID`          | Stable enforcement namespace.                                                                |
+| `AI_GATEWAY_ENFORCEMENT_EPOCH`      | Explicit policy/identity epoch. Change it for incompatible enforcement changes.              |
+| `AI_GATEWAY_IDENTITY_SECRET`        | At least 32 random bytes used as the HMAC key for anonymous client identity.                 |
+| `AI_GATEWAY_MODEL_MAX_INPUT_TOKENS` | Provider-verified worst-case input bound reserved for every admitted request.                |
 
 The four destination values are singular. Lists, commas, routing/fallback variables, empty values, and placeholders are invalid. URLs with userinfo, query strings, or fragments are invalid. `AI_GATEWAY_ALLOW_INSECURE_LOCAL_UPSTREAM=true` permits HTTP only for local/private fixture hosts; `AI_GATEWAY_ALLOW_PRIVATE_UPSTREAM=true` documents that development exception. Production must additionally enforce destination egress policy.
 

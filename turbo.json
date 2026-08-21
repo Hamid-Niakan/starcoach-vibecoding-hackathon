@@ -1,5 +1,9 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "specs/007-liara-assistant-quality/contracts/**",
+    ".env.example"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

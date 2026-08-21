@@ -25,8 +25,62 @@ x-gateway-environment: &gateway-environment
   AI_GATEWAY_MAX_REQUEST_SECONDS: ${AI_GATEWAY_MAX_REQUEST_SECONDS:-120}
   AI_GATEWAY_MAX_STREAM_SECONDS: ${AI_GATEWAY_MAX_STREAM_SECONDS:-300}
   AI_GATEWAY_RECONCILIATION_GRACE_SECONDS: ${AI_GATEWAY_RECONCILIATION_GRACE_SECONDS:-60}
+  AI_GATEWAY_LIARA_GROUNDING_ENABLED: ${AI_GATEWAY_LIARA_GROUNDING_ENABLED:-true}
+  AI_GATEWAY_MEILI_URL: ${AI_GATEWAY_MEILI_URL:-http://meilisearch:7700}
+  AI_GATEWAY_MEILI_API_KEY: ${AI_GATEWAY_MEILI_API_KEY:-fixture-meili-key-not-for-production}
+  AI_GATEWAY_LIARA_INDEX_UID: ${AI_GATEWAY_LIARA_INDEX_UID:-liara_docs_active}
+  AI_GATEWAY_LIARA_CORPUS_REVISION: ${AI_GATEWAY_LIARA_CORPUS_REVISION:-4aa2555f40e7b5d67be2b96bcf5025655dace036aaae2b121686a4d1362fbd03}
+  AI_GATEWAY_RETRIEVAL_POLICY_VERSION: ${AI_GATEWAY_RETRIEVAL_POLICY_VERSION:-retrieval-v1}
+  AI_GATEWAY_PROMPT_VERSION: ${AI_GATEWAY_PROMPT_VERSION:-prompt-v1}
+  AI_GATEWAY_CACHE_HMAC_SECRET: ${AI_GATEWAY_CACHE_HMAC_SECRET:-abcdef0123456789abcdef0123456789}
+  AI_GATEWAY_METRICS_TOKEN: ${AI_GATEWAY_METRICS_TOKEN:-fixture-metrics-token-not-for-production}
+  AI_GATEWAY_ALLOW_UNAUTHENTICATED_METRICS: ${AI_GATEWAY_ALLOW_UNAUTHENTICATED_METRICS:-true}
+  AI_GATEWAY_ALLOW_INSECURE_LOCAL_MEILI: ${AI_GATEWAY_ALLOW_INSECURE_LOCAL_MEILI:-true}
+  AI_GATEWAY_DIRECT_CONTEXT_TOKENS: ${AI_GATEWAY_DIRECT_CONTEXT_TOKENS:-2500}
+  AI_GATEWAY_DIRECT_OUTPUT_TOKENS: ${AI_GATEWAY_DIRECT_OUTPUT_TOKENS:-600}
+  AI_GATEWAY_COMPLEX_CONTEXT_TOKENS: ${AI_GATEWAY_COMPLEX_CONTEXT_TOKENS:-6000}
+  AI_GATEWAY_COMPLEX_OUTPUT_TOKENS: ${AI_GATEWAY_COMPLEX_OUTPUT_TOKENS:-1200}
+  AI_GATEWAY_CLARIFY_OUTPUT_TOKENS: ${AI_GATEWAY_CLARIFY_OUTPUT_TOKENS:-200}
+  AI_GATEWAY_INPUT_COST_MICRO_PER_MILLION: ${AI_GATEWAY_INPUT_COST_MICRO_PER_MILLION:-1000000}
+  AI_GATEWAY_OUTPUT_COST_MICRO_PER_MILLION: ${AI_GATEWAY_OUTPUT_COST_MICRO_PER_MILLION:-2000000}
+  AI_GATEWAY_DAILY_COST_BUDGET_MICRO: ${AI_GATEWAY_DAILY_COST_BUDGET_MICRO:-100000000}
 
 services:
+  meilisearch:
+    image: getmeili/meilisearch:v1.15
+    environment:
+      MEILI_ENV: development
+      MEILI_MASTER_KEY: ${AI_GATEWAY_MEILI_API_KEY:-fixture-meili-key-not-for-production}
+    ports: ["127.0.0.1:${MEILISEARCH_HOST_PORT:-7700}:7700"]
+    volumes:
+      - meilisearch-data:/meili_data
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:7700/health"]
+      interval: 3s
+      timeout: 2s
+      retries: 30
+
+  index-bootstrap:
+    build:
+      context: .
+      dockerfile: deploy/liara/Dockerfile.index-bootstrap
+    working_dir: /workspace
+    environment:
+      AI_GATEWAY_MEILI_URL: http://meilisearch:7700
+      AI_GATEWAY_MEILI_API_KEY: ${AI_GATEWAY_MEILI_API_KEY:-fixture-meili-key-not-for-production}
+      AI_GATEWAY_LIARA_INDEX_UID: ${AI_GATEWAY_LIARA_INDEX_UID:-liara_docs_active}
+      AI_GATEWAY_MEILI_TASK_TIMEOUT_MS: ${AI_GATEWAY_MEILI_TASK_TIMEOUT_MS:-600000}
+    command:
+      - /bin/sh
+      - -ec
+      - >-
+        pnpm liara:index:build &&
+        node -e "fetch('http://meilisearch:7700/indexes',{method:'POST',headers:{authorization:'Bearer '+process.env.AI_GATEWAY_MEILI_API_KEY,'content-type':'application/json'},body:JSON.stringify({uid:process.env.AI_GATEWAY_LIARA_INDEX_UID,primaryKey:'id'})}).then(r=>{if(!r.ok&&r.status!==409)throw Error('active index bootstrap failed')})" &&
+        pnpm liara:index:publish && pnpm liara:index:activate
+    depends_on:
+      meilisearch: { condition: service_healthy }
+    restart: "no"
+
   redis:
     image: redis:7.4-alpine
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
@@ -75,6 +129,7 @@ services:
       redis: { condition: service_healthy }
       gateway-bootstrap: { condition: service_completed_successfully }
       mock-upstream: { condition: service_started }
+      index-bootstrap: { condition: service_completed_successfully }
     healthcheck:
       test:
         [
@@ -94,8 +149,6 @@ services:
       args:
         NEXT_PUBLIC_AI_GATEWAY_URL: ${NEXT_PUBLIC_AI_GATEWAY_URL:-http://localhost:4000}
     ports: ["${LIARA_HOST_PORT:-3001}:8080"]
-    depends_on:
-      gateway: { condition: service_healthy }
 
   zarinpal:
     build:
@@ -105,3 +158,4 @@ services:
 
 volumes:
   redis-data:
+  meilisearch-data:

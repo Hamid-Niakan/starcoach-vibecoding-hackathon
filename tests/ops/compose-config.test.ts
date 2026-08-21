@@ -21,7 +21,9 @@ describe("authoritative gateway Compose definitions", () => {
     expect(Object.keys(config.services).sort()).toEqual([
       "gateway",
       "gateway-bootstrap",
+      "index-bootstrap",
       "liara",
+      "meilisearch",
       "mock-upstream",
       "redis",
       "zarinpal",
@@ -29,6 +31,17 @@ describe("authoritative gateway Compose definitions", () => {
     expect(config.services["gateway-bootstrap"].restart).toBe("no");
     expect(config.services["gateway-bootstrap"].environment).toEqual(
       config.services.gateway.environment,
+    );
+    expect(config.services["index-bootstrap"].build.dockerfile).toBe(
+      "deploy/liara/Dockerfile.index-bootstrap",
+    );
+    expect(config.services["index-bootstrap"].volumes).toBeUndefined();
+    expect(config.services["index-bootstrap"].command.join(" ")).not.toContain(
+      "pnpm install",
+    );
+    const dockerIgnore = readFileSync(path.join(root, ".dockerignore"), "utf8");
+    expect(dockerIgnore).toContain(
+      "!specs/007-liara-assistant-quality/contracts/**",
     );
     expect(
       config.services.gateway.depends_on["gateway-bootstrap"].condition,
@@ -39,9 +52,7 @@ describe("authoritative gateway Compose definitions", () => {
     expect(config.services.gateway.healthcheck.test.join(" ")).toContain(
       "/health/readiness",
     );
-    expect(config.services.liara.depends_on.gateway.condition).toBe(
-      "service_healthy",
-    );
+    expect(config.services.liara.depends_on).toBeUndefined();
     expect(config.services.zarinpal.depends_on?.gateway).toBeUndefined();
     expect(config.services.gateway.environment.AI_GATEWAY_API_KEY).toContain(
       "fixture",

@@ -13,8 +13,8 @@ function commandVersion(command, args = ["--version"]) {
   try {
     return {
       value: execFileSync(command, args, {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
       }).trim(),
     };
   } catch (error) {
@@ -27,12 +27,16 @@ const failures = [];
 const nodeVersion = process.versions.node;
 const nodeMajor = Number.parseInt(nodeVersion.split(".")[0] ?? "", 10);
 if (nodeMajor !== expected.nodeMajor) {
-  failures.push(`Node.js ${expected.nodeMajor}.x required; found ${nodeVersion}`);
+  failures.push(
+    `Node.js ${expected.nodeMajor}.x required; found ${nodeVersion}`,
+  );
 }
 
 const declaredPnpm = packageJson.packageManager?.replace(/^pnpm@/, "");
 if (declaredPnpm !== expected.pnpm) {
-  failures.push(`packageManager must pin pnpm ${expected.pnpm}; found ${declaredPnpm ?? "none"}`);
+  failures.push(
+    `packageManager must pin pnpm ${expected.pnpm}; found ${declaredPnpm ?? "none"}`,
+  );
 }
 
 const pnpmResult = commandVersion("pnpm");

@@ -1,19 +1,23 @@
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from typing import Any
 
+import httpx
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 
+from ai_gateway.grounding.index_client import IndexClient
+from ai_gateway.grounding.orchestrator import GroundingOrchestrator
 from ai_gateway.proxy._types import ErrorObject, ErrorResponse
 from ai_gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 from ai_gateway.proxy.endpoints.chat_completions import router as chat_router
 from ai_gateway.proxy.endpoints.docs import mount_swagger_ui
 from ai_gateway.proxy.endpoints.health import router as health_router
+from ai_gateway.proxy.endpoints.metrics import MetricsNoCorsMiddleware
 from ai_gateway.proxy.endpoints.metrics import router as metrics_router
 from ai_gateway.proxy.endpoints.models import router as models_router
 from ai_gateway.proxy.enforcement.parallel_request_limiter import ParallelRequestLimiter
@@ -48,13 +52,34 @@ def create_app(
     lifespan: Any = None,
     provider: OpenAICompatible | None = None,
     limiter: ParallelRequestLimiter | None = None,
+    grounding_orchestrator: GroundingOrchestrator | None = None,
+    grounding_readiness_check: Callable[[], Awaitable[bool]] | None = None,
 ) -> FastAPI:
     settings = config or load_config()
     prometheus = PrometheusLogger()
+    prometheus.set_daily_cost_budget(settings.daily_cost_budget_micro)
     logging_runtime = LoggingRuntime(prometheus, settings.log_queue_capacity, settings.log_level)
     provider = provider or OpenAICompatible(settings)
     enforcement_store = None if limiter is not None else RedisEnforcementStore(settings)
     limiter = limiter or ParallelRequestLimiter(enforcement_store, prometheus)  # type: ignore[arg-type]
+    grounding_http: httpx.AsyncClient | None = None
+    if settings.liara_grounding_enabled and grounding_orchestrator is None:
+        assert settings.meili_url is not None
+        assert settings.meili_api_key is not None
+        assert settings.liara_index_uid is not None
+        assert settings.liara_corpus_revision is not None
+        grounding_http = httpx.AsyncClient()
+        index_client = IndexClient(
+            http=grounding_http,
+            base_url=str(settings.meili_url),
+            api_key=settings.meili_api_key.get_secret_value(),
+            index_uid=settings.liara_index_uid,
+            revision=settings.liara_corpus_revision,
+            timeout_seconds=settings.meili_timeout_seconds,
+            candidate_limit=settings.retrieval_candidate_limit,
+        )
+        grounding_orchestrator = GroundingOrchestrator(settings, index_client)
+        grounding_readiness_check = index_client.readiness_check
 
     @asynccontextmanager
     async def default_lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -92,6 +117,8 @@ def create_app(
                 }
             )
             await provider.close()
+            if grounding_http is not None:
+                await grounding_http.aclose()
             if enforcement_store is not None:
                 await enforcement_store.close()
             logging_runtime.stop()
@@ -108,18 +135,33 @@ def create_app(
     app.state.proxy_config = settings
     app.state.provider = provider
     app.state.enforcement_store = enforcement_store
-    app.state.request_processing = ProxyBaseLLMRequestProcessing(settings, provider, limiter, prometheus)
+    app.state.request_processing = ProxyBaseLLMRequestProcessing(
+        settings,
+        provider,
+        limiter,
+        prometheus,
+        grounding_orchestrator,
+    )
     app.state.prometheus = prometheus
     app.state.proxy_logging = logging_runtime.proxy_logging
     app.state.logging_runtime = logging_runtime
     if enforcement_store is not None:
-        app.state.readiness_check = enforcement_store.readiness_check
+        enforcement_readiness_check = enforcement_store.readiness_check
     else:
 
         async def injected_readiness() -> bool:
             return True
 
-        app.state.readiness_check = injected_readiness
+        enforcement_readiness_check = injected_readiness
+
+    async def combined_readiness_check() -> bool:
+        if not await enforcement_readiness_check():
+            return False
+        if settings.liara_grounding_enabled:
+            return bool(grounding_readiness_check is not None and await grounding_readiness_check())
+        return True
+
+    app.state.readiness_check = combined_readiness_check
 
     @app.exception_handler(ProxyException)
     async def proxy_exception_handler(request: Request, exc: ProxyException) -> JSONResponse:
@@ -187,4 +229,5 @@ def create_app(
             max_age=600,
         )
     app.add_middleware(RequestContextMiddleware)
+    app.add_middleware(MetricsNoCorsMiddleware)
     return app

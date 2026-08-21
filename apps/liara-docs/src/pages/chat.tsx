@@ -16,7 +16,11 @@ export default function ChatPage() {
         <Link href="/" className="liara-chat-back">
           بازگشت به مستندات
         </Link>
-        <ChatPanel gatewayUrl={gatewayUrl} />
+        <ChatPanel
+          gatewayUrl={gatewayUrl}
+          title="دستیار مستندات لیارا"
+          description="پاسخ‌های مستند، مرحله‌به‌مرحله و همراه با منبع رسمی"
+        />
       </main>
     </>
   );

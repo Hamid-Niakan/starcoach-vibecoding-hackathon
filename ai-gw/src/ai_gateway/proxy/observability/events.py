@@ -54,12 +54,37 @@ class LimitType(StrEnum):
     TPM = "tpm"
     CONCURRENCY = "concurrency"
     QUOTA = "quota"
+    COST = "cost"
 
 
 class LogDropReason(StrEnum):
     QUEUE_FULL = "queue_full"
     SINK_ERROR = "sink_error"
     SERIALIZATION_ERROR = "serialization_error"
+
+
+class GroundingRoute(StrEnum):
+    DIRECT = "direct"
+    COMPLEX = "complex"
+    CLARIFY = "clarify"
+    ABSTAIN = "abstain"
+    OUT_OF_SCOPE = "out_of_scope"
+    ELEVATED_RISK = "elevated_risk"
+    UNKNOWN = "unknown"
+
+
+class CacheOutcome(StrEnum):
+    INELIGIBLE = "ineligible"
+    MISS = "miss"
+    HIT = "hit"
+    STALE = "stale"
+    ERROR = "error"
+
+
+class BudgetResult(StrEnum):
+    ALLOWED = "allowed"
+    SHORTENED = "shortened"
+    REJECTED = "rejected"
 
 
 class Severity(StrEnum):

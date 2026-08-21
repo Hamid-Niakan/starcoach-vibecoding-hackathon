@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "kind": "liara-docker-app",
+  "name": "liara-documentation-assistant",
+  "dockerfile": "deploy/liara/Dockerfile.docs",
+  "buildContext": ".",
+  "port": 8080,
+  "healthCheckPath": "/",
+  "privateDependencies": [],
+  "minimumReplicas": 2,
+  "buildArgumentNames": ["NEXT_PUBLIC_AI_GATEWAY_URL"]
+}
