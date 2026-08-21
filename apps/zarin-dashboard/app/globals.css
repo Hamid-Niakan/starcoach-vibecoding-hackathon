@@ -33,12 +33,78 @@ pre,
 .dashboard-main {
   padding: clamp(1rem, 3vw, 2.5rem);
 }
-.dashboard-card {
+.dashboard-header {
+  margin-bottom: 1.25rem;
+  padding: 0 0.25rem;
+}
+.dataset-notice,
+.assistant-deferred {
+  display: flex;
+  gap: 1rem;
   border: 1px solid #e4e4e7;
   border-radius: 18px;
   background: #fff;
   padding: 1.25rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+.dataset-notice {
+  align-items: flex-start;
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #78350f;
+}
+.dataset-notice svg {
+  flex: 0 0 auto;
+}
+.dataset-notice p,
+.assistant-deferred p {
+  margin: 0.4rem 0 0;
+  line-height: 1.8;
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.metric-card {
+  display: grid;
+  gap: 0.5rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 16px;
+  background: #fff;
+  padding: 1.1rem;
+}
+.metric-card span,
+.metric-card small {
+  color: #71717a;
+}
+.metric-card strong {
+  font-size: 1.8rem;
+}
+.assistant-deferred {
+  align-items: center;
+}
+.assistant-deferred__icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 14px;
+  background: #fef3c7;
+  color: #92400e;
+}
+.assistant-deferred h2 {
+  margin: 0;
+}
+.assistant-deferred button {
+  margin-top: 1rem;
+}
+.eyebrow {
+  color: #a16207;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 @media (max-width: 800px) {
   .dashboard-grid {
@@ -48,11 +114,13 @@ pre,
     display: none;
   }
   .dashboard-main {
-    padding: 0;
+    padding: 1rem;
   }
-  .dashboard-card {
-    border: 0;
-    border-radius: 0;
-    min-height: 100dvh;
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+  .dataset-notice,
+  .assistant-deferred {
+    align-items: flex-start;
   }
 }

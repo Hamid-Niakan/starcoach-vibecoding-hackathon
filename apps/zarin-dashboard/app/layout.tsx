@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "@hackathon/chat-ui/styles.css";
 
 export const metadata: Metadata = {
   title: "داشبورد تحلیلی زرین‌پال",

@@ -8,10 +8,13 @@ node_modules
 **/.next
 **/out
 **/dist
+**/build
 .turbo
 **/.turbo
 **/*.tsbuildinfo
 coverage
+test-results
+playwright-report
 .env*
 data/zarinpal/*
 *.duckdb*
@@ -19,5 +22,6 @@ data/zarinpal/*
 __pycache__
 **/__pycache__
 *.pyc
+**/*.egg-info
 .venv
 **/.venv

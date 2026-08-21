@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hackathon.local/contracts/liara-browser-chat-state-v1.schema.json",
+  "title": "Liara Browser Chat State v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "model", "messages", "updatedAt"],
+  "properties": {
+    "version": { "const": 1 },
+    "model": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "messages": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/message" },
+      "contains": {
+        "type": "object",
+        "properties": { "status": { "const": "streaming" } },
+        "required": ["status"]
+      },
+      "minContains": 0,
+      "maxContains": 1
+    },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "turnId", "role", "content", "status", "createdAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "turnId": { "type": "string", "format": "uuid" },
+        "role": { "enum": ["user", "assistant"] },
+        "content": { "type": "string", "maxLength": 65536 },
+        "status": {
+          "enum": ["completed", "streaming", "stopped", "failed"]
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "errorCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "role": { "const": "user" } },
+            "required": ["role"]
+          },
+          "then": {
+            "properties": {
+              "status": { "const": "completed" },
+              "content": { "minLength": 1 }
+            },
+            "not": { "required": ["errorCode"] }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": { "enum": ["streaming", "stopped", "failed"] }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": { "role": { "const": "assistant" } }
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": { "status": { "const": "failed" } },
+              "required": ["status"]
+            }
+          },
+          "then": {
+            "not": { "required": ["errorCode"] }
+          }
+        }
+      ]
+    }
+  }
+}

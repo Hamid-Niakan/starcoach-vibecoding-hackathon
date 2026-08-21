@@ -5,8 +5,8 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.js
 COPY packages ./packages
 COPY apps/liara-docs ./apps/liara-docs
 RUN pnpm install --frozen-lockfile
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_AI_GATEWAY_URL=http://localhost:4000
+ENV NEXT_PUBLIC_AI_GATEWAY_URL=$NEXT_PUBLIC_AI_GATEWAY_URL
 RUN pnpm turbo build --filter=@hackathon/liara-docs
 
 FROM nginx:1.27-alpine

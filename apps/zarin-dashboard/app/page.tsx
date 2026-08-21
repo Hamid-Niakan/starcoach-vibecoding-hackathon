@@ -1,8 +1,11 @@
-import { BarChart3, CircleDollarSign, Sparkles } from "lucide-react";
-import { ChatPanel } from "@hackathon/chat-ui";
+import {
+  BarChart3,
+  CircleDollarSign,
+  Database,
+  LockKeyhole,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
 export default function DashboardPage() {
   return (
@@ -14,33 +17,60 @@ export default function DashboardPage() {
         </div>
         <nav className="mt-10 space-y-2 text-sm text-zinc-600">
           <Button className="w-full justify-start" variant="outline">
-            <Sparkles className="ml-2 h-4 w-4" />
-            دستیار تحلیلی
+            <BarChart3 className="ml-2 h-4 w-4" />
+            نمای کلی
           </Button>
           <div className="flex items-center rounded-xl px-4 py-3 opacity-50">
-            <BarChart3 className="ml-2 h-4 w-4" />
-            بینش‌ها — به‌زودی
+            <Sparkles className="ml-2 h-4 w-4" />
+            دستیار تحلیلی — به‌زودی
           </div>
         </nav>
       </aside>
       <main className="dashboard-main">
         <div className="mx-auto max-w-5xl">
-          <header className="mb-5 px-2">
+          <header className="dashboard-header">
             <p className="mb-1 text-sm text-zinc-500">نسخه پایه هکاتون</p>
-            <h1 className="m-0 text-2xl font-bold">دستیار تحلیل پذیرنده</h1>
+            <h1 className="m-0 text-2xl font-bold">داشبورد تحلیل پذیرنده</h1>
             <p className="text-sm text-zinc-600">
-              زیرساخت گفتگو آماده است؛ تحلیل داده پس از دریافت مجموعه‌داده رسمی
-              اضافه می‌شود.
+              پوسته محصول آماده است و تحلیل‌های قابل ردیابی در مرحله داده اضافه می‌شوند.
             </p>
           </header>
-          <div className="dashboard-card">
-            <ChatPanel
-              apiUrl={apiUrl}
-              product="zarinpal"
-              title="دستیار زرین‌پال"
-              description="گفتگوی آزمایشی با تاریخچه پایدار"
-            />
-          </div>
+
+          <section className="dataset-notice" aria-label="وضعیت داده">
+            <Database aria-hidden="true" />
+            <div>
+              <strong>مجموعه‌داده هنوز بارگذاری نشده است</strong>
+              <p>اعداد ساختگی نمایش داده نمی‌شوند؛ همه شاخص‌ها بعداً از داده رسمی محاسبه و قابل پیگیری خواهند بود.</p>
+            </div>
+          </section>
+
+          <section className="metric-grid" aria-label="شاخص‌های آینده">
+            {[
+              ["نرخ موفقیت پرداخت", "—"],
+              ["درآمد قابل مقایسه", "—"],
+              ["فرصت‌های بهبود", "—"],
+            ].map(([label, value]) => (
+              <article className="metric-card" key={label}>
+                <span>{label}</span>
+                <strong aria-label={`${label}: در انتظار داده`}>{value}</strong>
+                <small>در انتظار داده رسمی</small>
+              </article>
+            ))}
+          </section>
+
+          <section className="assistant-deferred" data-testid="zarinpal-assistant-deferred">
+            <div className="assistant-deferred__icon"><LockKeyhole aria-hidden="true" /></div>
+            <div>
+              <p className="eyebrow">مرحله آینده</p>
+              <h2>دستیار تحلیلی زرین‌پال</h2>
+              <p>
+                این قابلیت پس از دریافت مجموعه‌داده رسمی و تعریف قواعد تحلیل فعال می‌شود تا هیچ پاسخ یا بینش بدون پشتوانه داده ارائه نشود.
+              </p>
+              <Button type="button" disabled>
+                پس از دریافت مجموعه‌داده رسمی فعال می‌شود
+              </Button>
+            </div>
+          </section>
         </div>
       </main>
     </div>

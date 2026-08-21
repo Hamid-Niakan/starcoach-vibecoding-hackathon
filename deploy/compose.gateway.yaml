@@ -1,0 +1,74 @@
+x-gateway-environment: &gateway-environment
+  AI_GATEWAY_MODEL_NAME: "${AI_GATEWAY_MODEL_NAME:?set the public model alias}"
+  AI_GATEWAY_MODEL: "${AI_GATEWAY_MODEL:?set the protected provider model}"
+  AI_GATEWAY_API_BASE: "${AI_GATEWAY_API_BASE:?set the provider /v1 base URL}"
+  AI_GATEWAY_API_KEY: "${AI_GATEWAY_API_KEY:?set the provider secret}"
+  AI_GATEWAY_REDIS_URL: redis://redis:6379/0
+  AI_GATEWAY_DEPLOYMENT_ID: "${AI_GATEWAY_DEPLOYMENT_ID:?set a stable deployment id}"
+  AI_GATEWAY_ENFORCEMENT_EPOCH: "${AI_GATEWAY_ENFORCEMENT_EPOCH:?set the policy epoch}"
+  AI_GATEWAY_IDENTITY_SECRET: "${AI_GATEWAY_IDENTITY_SECRET:?set a random secret of at least 32 bytes}"
+  AI_GATEWAY_MODEL_MAX_INPUT_TOKENS: "${AI_GATEWAY_MODEL_MAX_INPUT_TOKENS:?set the provider input cap}"
+  AI_GATEWAY_CORS_ALLOW_ORIGINS: "${AI_GATEWAY_CORS_ALLOW_ORIGINS:?set exact browser origins}"
+  AI_GATEWAY_TRUSTED_PROXY_CIDRS: "${AI_GATEWAY_TRUSTED_PROXY_CIDRS:?set trusted ingress CIDRs}"
+  AI_GATEWAY_ALLOW_INSECURE_LOCAL_UPSTREAM: "false"
+  AI_GATEWAY_ALLOW_PRIVATE_UPSTREAM: "${AI_GATEWAY_ALLOW_PRIVATE_UPSTREAM:-false}"
+  AI_GATEWAY_CLIENT_RPM: "${AI_GATEWAY_CLIENT_RPM:-60}"
+  AI_GATEWAY_CLIENT_TPM: "${AI_GATEWAY_CLIENT_TPM:-100000}"
+  AI_GATEWAY_CLIENT_MAX_CONCURRENCY: "${AI_GATEWAY_CLIENT_MAX_CONCURRENCY:-4}"
+  AI_GATEWAY_CLIENT_QUOTA_TOKENS: "${AI_GATEWAY_CLIENT_QUOTA_TOKENS:-1000000}"
+  AI_GATEWAY_CLIENT_QUOTA_WINDOW_SECONDS: "${AI_GATEWAY_CLIENT_QUOTA_WINDOW_SECONDS:-86400}"
+  AI_GATEWAY_GLOBAL_RPM: "${AI_GATEWAY_GLOBAL_RPM:-1000}"
+  AI_GATEWAY_GLOBAL_TPM: "${AI_GATEWAY_GLOBAL_TPM:-2000000}"
+  AI_GATEWAY_GLOBAL_MAX_CONCURRENCY: "${AI_GATEWAY_GLOBAL_MAX_CONCURRENCY:-100}"
+  AI_GATEWAY_GLOBAL_QUOTA_TOKENS: "${AI_GATEWAY_GLOBAL_QUOTA_TOKENS:-50000000}"
+  AI_GATEWAY_GLOBAL_QUOTA_WINDOW_SECONDS: "${AI_GATEWAY_GLOBAL_QUOTA_WINDOW_SECONDS:-86400}"
+  AI_GATEWAY_MAX_REQUEST_SECONDS: "${AI_GATEWAY_MAX_REQUEST_SECONDS:-120}"
+  AI_GATEWAY_MAX_STREAM_SECONDS: "${AI_GATEWAY_MAX_STREAM_SECONDS:-300}"
+  AI_GATEWAY_RECONCILIATION_GRACE_SECONDS: "${AI_GATEWAY_RECONCILIATION_GRACE_SECONDS:-60}"
+
+services:
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ../ai-gw/deploy/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 1s
+      retries: 20
+    restart: unless-stopped
+
+  gateway-bootstrap:
+    build:
+      context: ../ai-gw
+    command: ["/app/.venv/bin/ai-gateway-bootstrap"]
+    environment: *gateway-environment
+    depends_on:
+      redis: { condition: service_healthy }
+    restart: "no"
+
+  gateway:
+    build:
+      context: ../ai-gw
+    environment: *gateway-environment
+    ports: ["${AI_GATEWAY_PORT:-4000}:4000"]
+    depends_on:
+      redis: { condition: service_healthy }
+      gateway-bootstrap: { condition: service_completed_successfully }
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/app/.venv/bin/python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/readiness', timeout=2)",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  redis-data:

@@ -1,13 +1,15 @@
 # SDD Delivery Roadmap
 
-| Feature                       | State                                  | Notes                                                                                                                         |
-| ----------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| 001 Monorepo foundation       | Implemented                            | Root workspace, imported Liara docs, Zarin shell, API, packages, Docker definitions                                           |
-| 002 Drizzle ORM               | Superseded by 003                      | Configuration decision retained as history; PostgreSQL runtime work belongs to 003                                            |
-| 003 Data platform foundation  | Implemented; integration check pending | PostgreSQL migrations and DuckDB adapter exist; a reachable PostgreSQL/Docker runtime is required for the final restart check |
-| 004 Shared chat skeleton      | Implemented; acceptance checks pending | Mock SSE, persistence, shared UI, isolation, redacted logs, and throttling are present                                        |
-| 005 Supported Next.js upgrade | Approved; next                         | Blocks every public deployment while either application remains on Next.js 14                                                 |
-| 006 Liara RAG assistant       | Deferred                               | Specify after 005; provider, retrieval, citations, evaluation, and cost policy belong here                                    |
-| 007 ZarinPal analytics        | Input-blocked                          | Create only after the real dataset and remaining business rules are supplied                                                  |
+| Feature                       | State                             | Notes                                                                                                                        |
+| ----------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 001 Monorepo foundation       | Historical baseline               | Established the workspace and product shells; its original backend choice is superseded by constitution v2 and feature 006   |
+| 002 ORM decision              | Superseded                        | Retained as specification history; it does not configure the active gateway                                                  |
+| 003 Data platform foundation  | Superseded for the shared backend | Future ZarinPal storage must be specified inside the analytics product boundary                                              |
+| 004 Shared chat skeleton      | Superseded integration            | UI concepts were retained where compatible; server-owned conversations were replaced by stateless OpenAI-compatible requests |
+| 005 Supported Next.js upgrade | Required before release           | Public deployment remains blocked while either frontend uses Next.js 14                                                      |
+| 006 AI gateway integration    | Active                            | Makes `ai-gw/` authoritative, connects Liara, removes the legacy backend, and keeps ZarinPal disconnected                    |
+| 007 ZarinPal analytics        | Input-blocked                     | Requires the official dataset and remaining merchant business rules                                                          |
+| Future Liara RAG              | Deferred                          | Retrieval, citations, answer evaluation, provider policy, and cost tuning require a dedicated later specification            |
 
-The active Spec Kit pointer remains on feature 004 until its PostgreSQL-backed reload and responsive browser acceptance checks can run. Features are executed in numeric order.
+The active Spec Kit pointer is feature 006. Historical specifications remain auditable but do not
+override the ratified constitution or the current runtime architecture.

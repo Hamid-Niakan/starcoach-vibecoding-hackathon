@@ -10,4 +10,6 @@ VALID_CHUNKS = (
 )
 SPLIT_CHUNKS = (VALID_CHUNKS[0][:17], VALID_CHUNKS[0][17:], *VALID_CHUNKS[1:])
 MALFORMED_CHUNKS = (b"data: {not-json}\n\n",)
+MISSING_DONE_CHUNKS = VALID_CHUNKS[:-1]
+MALFORMED_AFTER_VALID_CHUNKS = (VALID_CHUNKS[0], b"data: {not-json}\n\n")
 OVERSIZED_EVENT = b"data: " + (b"x" * 1_100_000) + b"\n\n"

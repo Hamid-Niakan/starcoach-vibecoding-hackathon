@@ -50,3 +50,23 @@ def test_proxy_config_contains_one_scalar_destination(gateway_env: dict[str, str
     dumped = config.model_dump()
     assert "model_list" not in dumped
     assert set(dumped["litellm_params"]) == {"model", "api_base", "api_key"}
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("AI_GATEWAY_REDIS_URL", ""),
+        ("AI_GATEWAY_IDENTITY_SECRET", "too-short"),
+        ("AI_GATEWAY_CORS_ALLOW_ORIGINS", "*"),
+        ("AI_GATEWAY_TRUSTED_PROXY_CIDRS", "not-a-network"),
+    ],
+)
+def test_operator_critical_configuration_fails_closed(
+    gateway_env: dict[str, str], monkeypatch: pytest.MonkeyPatch, name: str, value: str
+) -> None:
+    monkeypatch.setenv(name, value)
+    with pytest.raises((ValidationError, ValueError)) as exc:
+        load_config()
+    rendered = str(exc.value)
+    assert gateway_env["AI_GATEWAY_API_KEY"] not in rendered
+    assert gateway_env["AI_GATEWAY_IDENTITY_SECRET"] not in rendered

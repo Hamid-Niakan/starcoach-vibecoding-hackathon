@@ -6,6 +6,7 @@ export default function ChatLauncher() {
       className="liara-chat-launcher"
       href="/chat"
       aria-label="باز کردن دستیار مستندات"
+      dir="rtl"
     >
       <span aria-hidden="true">✦</span>
       <span>از دستیار بپرسید</span>

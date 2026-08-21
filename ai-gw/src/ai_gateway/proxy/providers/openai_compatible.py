@@ -47,7 +47,15 @@ class OpenAICompatible:
             REQUEST_ID_HEADER: request_id,
         }
 
-    async def send(self, payload: dict[str, Any], request_id: str, *, streaming: bool) -> httpx.Response:
+    async def send(
+        self, payload: dict[str, Any], request_id: str, *, streaming: bool, deadline: float | None = None
+    ) -> httpx.Response:
+        if deadline is not None:
+            async with asyncio.timeout_at(deadline):
+                return await self._send(payload, request_id, streaming=streaming)
+        return await self._send(payload, request_id, streaming=streaming)
+
+    async def _send(self, payload: dict[str, Any], request_id: str, *, streaming: bool) -> httpx.Response:
         await self._validate_destination_addresses()
         request = self._client.build_request(
             "POST",

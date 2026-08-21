@@ -3,21 +3,37 @@
   "private": true,
   "packageManager": "pnpm@10.33.0",
   "engines": {
-    "node": ">=22.14.0 <25"
+    "node": ">=24 <25"
   },
   "scripts": {
     "dev": "turbo dev",
-    "build": "turbo build",
-    "lint": "turbo lint",
-    "format": "prettier --write apps/api apps/zarin-dashboard packages scripts docs data README.md CONTRIBUTING.md package.json pnpm-workspace.yaml turbo.json tsconfig.base.json compose.yaml deploy",
-    "format:check": "prettier --check apps/api apps/zarin-dashboard packages scripts docs data README.md CONTRIBUTING.md package.json pnpm-workspace.yaml turbo.json tsconfig.base.json compose.yaml deploy",
-    "type-check": "turbo type-check",
-    "test": "turbo test",
-    "release:check": "node scripts/check-release.mjs"
+    "dev:gateway": "uv --directory ai-gw run --frozen uvicorn ai_gateway.main:app --host 0.0.0.0 --port 4000 --no-access-log --no-server-header --log-level critical",
+    "gateway:bootstrap": "uv --directory ai-gw run --frozen ai-gateway-bootstrap",
+    "build": "pnpm build:node && pnpm build:gateway",
+    "build:node": "turbo build",
+    "build:gateway": "uv --directory ai-gw run --frozen python -m compileall -q src",
+    "lint": "pnpm lint:node && pnpm lint:gateway",
+    "lint:node": "turbo lint",
+    "lint:gateway": "uv --directory ai-gw run --frozen ruff check src tests",
+    "format": "prettier --write apps/zarin-dashboard apps/liara-docs/src/components/ChatLauncher.tsx apps/liara-docs/src/pages/chat.tsx apps/liara-docs/next.config.mjs packages scripts tests docs data deploy ai-gw/README.md ai-gw/compose.yaml ai-gw/docs README.md CONTRIBUTING.md package.json pnpm-workspace.yaml turbo.json tsconfig.base.json compose.yaml",
+    "format:check": "prettier --check apps/zarin-dashboard apps/liara-docs/src/components/ChatLauncher.tsx apps/liara-docs/src/pages/chat.tsx apps/liara-docs/next.config.mjs packages scripts tests docs data deploy ai-gw/README.md ai-gw/compose.yaml ai-gw/docs README.md CONTRIBUTING.md package.json pnpm-workspace.yaml turbo.json tsconfig.base.json compose.yaml",
+    "type-check": "pnpm type-check:node && pnpm type-check:gateway",
+    "type-check:node": "turbo type-check",
+    "type-check:gateway": "uv --directory ai-gw run --frozen mypy src",
+    "test": "pnpm test:node && pnpm test:gateway && pnpm test:ops",
+    "test:node": "turbo test",
+    "test:ops": "vitest run tests/ops",
+    "test:e2e": "playwright test",
+    "test:gateway": "uv --directory ai-gw run --frozen pytest -q",
+    "release:check": "node scripts/check-release.mjs",
+    "check:toolchain": "node scripts/check-toolchain.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "1.55.0",
     "prettier": "3.6.2",
     "turbo": "2.5.6",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "3.2.4",
+    "yaml": "2.9.0"
   }
 }

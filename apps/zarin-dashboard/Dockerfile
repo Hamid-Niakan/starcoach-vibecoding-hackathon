@@ -2,11 +2,8 @@ FROM node:24-bookworm-slim AS builder
 WORKDIR /workspace
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
-COPY packages ./packages
 COPY apps/zarin-dashboard ./apps/zarin-dashboard
 RUN pnpm install --frozen-lockfile
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN pnpm turbo build --filter=@hackathon/zarin-dashboard
 
 FROM node:24-bookworm-slim AS runner

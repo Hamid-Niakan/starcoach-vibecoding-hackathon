@@ -1,57 +1,107 @@
+x-gateway-environment: &gateway-environment
+  AI_GATEWAY_MODEL_NAME: ${AI_GATEWAY_MODEL_NAME:-liara-docs}
+  AI_GATEWAY_MODEL: ${AI_GATEWAY_MODEL:-fixture-provider-model}
+  AI_GATEWAY_API_BASE: ${AI_GATEWAY_API_BASE:-http://mock-upstream:8080/v1}
+  AI_GATEWAY_API_KEY: ${AI_GATEWAY_API_KEY:-fixture-secret-not-for-production}
+  AI_GATEWAY_REDIS_URL: ${AI_GATEWAY_REDIS_URL:-redis://redis:6379/0}
+  AI_GATEWAY_DEPLOYMENT_ID: ${AI_GATEWAY_DEPLOYMENT_ID:-local-hackathon}
+  AI_GATEWAY_ENFORCEMENT_EPOCH: ${AI_GATEWAY_ENFORCEMENT_EPOCH:-local-v1}
+  AI_GATEWAY_IDENTITY_SECRET: ${AI_GATEWAY_IDENTITY_SECRET:-0123456789abcdef0123456789abcdef}
+  AI_GATEWAY_MODEL_MAX_INPUT_TOKENS: ${AI_GATEWAY_MODEL_MAX_INPUT_TOKENS:-8192}
+  AI_GATEWAY_CORS_ALLOW_ORIGINS: ${AI_GATEWAY_CORS_ALLOW_ORIGINS:-http://localhost:3001}
+  AI_GATEWAY_TRUSTED_PROXY_CIDRS: ${AI_GATEWAY_TRUSTED_PROXY_CIDRS:-}
+  AI_GATEWAY_ALLOW_INSECURE_LOCAL_UPSTREAM: ${AI_GATEWAY_ALLOW_INSECURE_LOCAL_UPSTREAM:-true}
+  AI_GATEWAY_ALLOW_PRIVATE_UPSTREAM: ${AI_GATEWAY_ALLOW_PRIVATE_UPSTREAM:-true}
+  AI_GATEWAY_CLIENT_RPM: ${AI_GATEWAY_CLIENT_RPM:-60}
+  AI_GATEWAY_CLIENT_TPM: ${AI_GATEWAY_CLIENT_TPM:-100000}
+  AI_GATEWAY_CLIENT_MAX_CONCURRENCY: ${AI_GATEWAY_CLIENT_MAX_CONCURRENCY:-4}
+  AI_GATEWAY_CLIENT_QUOTA_TOKENS: ${AI_GATEWAY_CLIENT_QUOTA_TOKENS:-1000000}
+  AI_GATEWAY_CLIENT_QUOTA_WINDOW_SECONDS: ${AI_GATEWAY_CLIENT_QUOTA_WINDOW_SECONDS:-86400}
+  AI_GATEWAY_GLOBAL_RPM: ${AI_GATEWAY_GLOBAL_RPM:-1000}
+  AI_GATEWAY_GLOBAL_TPM: ${AI_GATEWAY_GLOBAL_TPM:-2000000}
+  AI_GATEWAY_GLOBAL_MAX_CONCURRENCY: ${AI_GATEWAY_GLOBAL_MAX_CONCURRENCY:-100}
+  AI_GATEWAY_GLOBAL_QUOTA_TOKENS: ${AI_GATEWAY_GLOBAL_QUOTA_TOKENS:-50000000}
+  AI_GATEWAY_GLOBAL_QUOTA_WINDOW_SECONDS: ${AI_GATEWAY_GLOBAL_QUOTA_WINDOW_SECONDS:-86400}
+  AI_GATEWAY_MAX_REQUEST_SECONDS: ${AI_GATEWAY_MAX_REQUEST_SECONDS:-120}
+  AI_GATEWAY_MAX_STREAM_SECONDS: ${AI_GATEWAY_MAX_STREAM_SECONDS:-300}
+  AI_GATEWAY_RECONCILIATION_GRACE_SECONDS: ${AI_GATEWAY_RECONCILIATION_GRACE_SECONDS:-60}
+
 services:
-  postgres:
-    image: postgres:16.4-alpine
-    environment:
-      POSTGRES_USER: hackathon
-      POSTGRES_PASSWORD: hackathon
-      POSTGRES_DB: hackathon
-    ports: ["${POSTGRES_HOST_PORT:-5432}:5432"]
-    volumes: ["postgres-data:/var/lib/postgresql/data"]
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hackathon -d hackathon"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
-  api:
-    build: { context: ., dockerfile: apps/api/Dockerfile }
-    environment:
-      DATABASE_URL: postgres://hackathon:hackathon@postgres:5432/hackathon
-      DUCKDB_PATH: /data/analytics.duckdb
-      ZARINPAL_DATA_DIR: /data/zarinpal
-      CORS_ORIGINS: http://localhost:3001,http://localhost:3002
-    ports: ["3000:3000"]
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    ports: ["127.0.0.1:${REDIS_HOST_PORT:-6389}:6379"]
     volumes:
-      - duckdb-data:/data
-      - ./data/zarinpal:/data/zarinpal:ro
+      - ./ai-gw/deploy/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 1s
+      retries: 20
+
+  gateway-bootstrap:
+    build: ./ai-gw
+    command: ["/app/.venv/bin/ai-gateway-bootstrap"]
+    environment: *gateway-environment
     depends_on:
-      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    restart: "no"
+
+  mock-upstream:
+    build: ./ai-gw
+    command:
+      [
+        "/app/.venv/bin/uvicorn",
+        "tests.fixtures.mock_openai_server:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8080",
+        "--no-access-log",
+        "--no-server-header",
+      ]
+    volumes:
+      - ./ai-gw/tests:/app/tests:ro
+    environment:
+      MOCK_UPSTREAM_API_KEY: fixture-secret-not-for-production
+    ports: ["127.0.0.1:${MOCK_UPSTREAM_HOST_PORT:-8080}:8080"]
+
+  gateway:
+    build: ./ai-gw
+    environment: *gateway-environment
+    ports: ["${AI_GATEWAY_PORT:-4000}:4000"]
+    depends_on:
+      redis: { condition: service_healthy }
+      gateway-bootstrap: { condition: service_completed_successfully }
+      mock-upstream: { condition: service_started }
     healthcheck:
       test:
         [
           "CMD",
-          "node",
-          "-e",
-          "fetch('http://127.0.0.1:3000/api/health/ready').then(r=>{if(!r.ok)process.exit(1)})",
+          "/app/.venv/bin/python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/readiness', timeout=2)",
         ]
-      interval: 10s
-      timeout: 4s
-      retries: 12
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   liara:
     build:
       context: .
       dockerfile: apps/liara-docs/Dockerfile.monorepo
-      args: { NEXT_PUBLIC_API_URL: http://localhost:3000 }
-    ports: ["3001:8080"]
+      args:
+        NEXT_PUBLIC_AI_GATEWAY_URL: ${NEXT_PUBLIC_AI_GATEWAY_URL:-http://localhost:4000}
+    ports: ["${LIARA_HOST_PORT:-3001}:8080"]
     depends_on:
-      api: { condition: service_healthy }
+      gateway: { condition: service_healthy }
+
   zarinpal:
     build:
       context: .
       dockerfile: apps/zarin-dashboard/Dockerfile
-      args: { NEXT_PUBLIC_API_URL: http://localhost:3000 }
-    ports: ["3002:3002"]
-    depends_on:
-      api: { condition: service_healthy }
+    ports: ["${ZARINPAL_HOST_PORT:-3002}:3002"]
+
 volumes:
-  postgres-data:
-  duckdb-data:
+  redis-data:

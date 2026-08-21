@@ -24,10 +24,16 @@ Client settings are `AI_GATEWAY_CLIENT_RPM`, `AI_GATEWAY_CLIENT_TPM`, `AI_GATEWA
 
 Request bounds are `AI_GATEWAY_MAX_BODY_BYTES`, `AI_GATEWAY_MAX_JSON_DEPTH`, `AI_GATEWAY_MAX_MESSAGES`, `AI_GATEWAY_MAX_TOOLS`, `AI_GATEWAY_MAX_OUTPUT_TOKENS`, `AI_GATEWAY_MAX_REQUEST_SECONDS`, `AI_GATEWAY_MAX_STREAM_SECONDS`, `AI_GATEWAY_RECONCILIATION_GRACE_SECONDS`, `AI_GATEWAY_MAX_RESPONSE_BYTES`, `AI_GATEWAY_MAX_SSE_EVENT_BYTES`, `AI_GATEWAY_MAX_SSE_BUFFER_BYTES`, `AI_GATEWAY_MAX_STREAM_BYTES`, and `AI_GATEWAY_MAX_STREAM_EVENTS`.
 
+`MAX_REQUEST_SECONDS` is an absolute wall-clock budget for the complete non-streaming lifecycle, including admission, connection, response reading, validation, and reconciliation. `MAX_STREAM_SECONDS` begins before admission and bounds the complete streaming lifecycle; bytes arriving periodically do not extend it. The per-operation HTTP timeouts below remain defense in depth and do not replace these total deadlines.
+
 Run `ai-gateway-bootstrap` after validating a new deployment/epoch and before starting traffic. Bootstrap is idempotent for an identical fingerprint and rejects a conflicting fingerprint.
 
 ## Transport and operations
 
 HTTP timeouts use `AI_GATEWAY_CONNECT_TIMEOUT_SECONDS`, `READ_TIMEOUT_SECONDS`, `WRITE_TIMEOUT_SECONDS`, and `POOL_TIMEOUT_SECONDS`. Pool settings are `MAX_CONNECTIONS` and `MAX_KEEPALIVE_CONNECTIONS`; Redis operations use `REDIS_TIMEOUT_SECONDS`. Prefix each short name with `AI_GATEWAY_`.
 
-`AI_GATEWAY_TRUSTED_PROXY_CIDRS` and `AI_GATEWAY_CORS_ALLOW_ORIGINS` are comma-separated scalar strings whose entries are individually validated. Logging uses `AI_GATEWAY_LOG_LEVEL` and `AI_GATEWAY_LOG_QUEUE_CAPACITY`. Secrets should come from the orchestrator's secret facility, never image layers or committed `.env` files.
+`AI_GATEWAY_TRUSTED_PROXY_CIDRS` and `AI_GATEWAY_CORS_ALLOW_ORIGINS` are comma-separated scalar strings whose entries are individually validated. Keep trusted proxy CIDRs empty for direct local access. Behind an ingress, set only the smallest operator-owned ingress CIDR set and set `AI_GATEWAY_MAX_FORWARDED_HOPS` to the known chain length; never trust all private networks. An empty trust set behind ingress is safe from spoofing but makes visitors share the ingress identity and limits.
+
+Each CORS origin must be an exact `http` or `https` origin without a path, wildcard, credentials, query, or fragment. Allowed browser origins may use `GET`, `POST`, and `OPTIONS`, request `content-type` and optional `authorization`, and read `x-request-id`. Requests without `Origin` bypass CORS processing for CLI and SDK compatibility.
+
+Logging uses `AI_GATEWAY_LOG_LEVEL` and `AI_GATEWAY_LOG_QUEUE_CAPACITY`. Secrets should come from the orchestrator's secret facility, never image layers or committed `.env` files.

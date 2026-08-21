@@ -1,196 +1,137 @@
 # Liara + ZarinPal Hackathon Monorepo
 
-Two independently deployable products share one NestJS API and a reusable streaming chat layer:
+This pnpm/Turborepo contains two independently deployable Next.js products and one authoritative
+FastAPI AI gateway:
 
-- `apps/liara-docs`: official Liara documentation snapshot plus documentation assistant UI
-- `apps/zarin-dashboard`: Persian-first merchant analytics shell
-- `apps/api`: shared chat, persistence, analytics, health, and observability boundary
-- `packages/contracts`: framework-neutral REST and SSE schemas
-- `packages/api-client`: validated REST and streaming client
-- `packages/chat-ui`: shared React chat experience
+- `apps/liara-docs` — the official Liara documentation snapshot with an OpenAI-compatible chat
+- `apps/zarin-dashboard` — a Persian-first analytics shell; AI connectivity is intentionally deferred
+- `ai-gw` — the stateless FastAPI gateway, Redis-backed anonymous enforcement, and operator docs
+- `packages/*` — versioned browser contracts, client transport, and shared React UI
 
-## Local URLs
-
-| Service                  | URL                                      |
-| ------------------------ | ---------------------------------------- |
-| Liara documentation      | <http://localhost:3001>                  |
-| Liara full-screen chat   | <http://localhost:3001/chat>             |
-| ZarinPal dashboard       | <http://localhost:3002>                  |
-| API compatibility health | <http://localhost:3000/api/health>       |
-| API liveness             | <http://localhost:3000/api/health/live>  |
-| API readiness            | <http://localhost:3000/api/health/ready> |
-| PostgreSQL               | `localhost:5432` by default              |
+The legacy backend is retired. The active public backend routes are `/v1/models`,
+`/v1/chat/completions`, `/health/liveness`, and `/health/readiness` on port 4000.
 
 ## Prerequisites
 
-- Node.js 24 (see `.nvmrc`; Node 22.14 or newer can be used temporarily for local development)
-- Corepack and pnpm 10.33.0
-- Docker with Compose v2, at minimum for PostgreSQL
-- Optional: `curl` and `jq` for command-line API testing
-
-Confirm the toolchain:
-
-```bash
-node --version
-corepack --version
-docker compose version
-```
-
-## First-time setup
-
-Run these commands from the repository root:
+- Node.js 24 and pnpm 10.33.0 through Corepack
+- Python 3.12 and uv 0.8.13
+- Docker Engine with Compose v2
+- `curl`; `jq` is useful for smoke tests
 
 ```bash
 corepack enable
 corepack prepare pnpm@10.33.0 --activate
+pnpm check:toolchain
+```
+
+## Clean-clone setup
+
+```bash
 cp .env.example .env
 pnpm install --frozen-lockfile
+uv --directory ai-gw sync --frozen --extra dev
+pnpm exec playwright install chromium
 ```
 
-The `.env` file is ignored by Git. The checked-in defaults are suitable for the local PostgreSQL service and do not contain production credentials.
+The checked-in environment example contains deterministic local fixtures only. Never reuse its API
+key or identity secret in a public deployment. Production provider credentials, random identity
+secret, exact CORS origins, trusted proxy CIDRs, deployment ID, and policy epoch are operator-owned.
 
-## Run everything with Docker
-
-This is the simplest production-like startup. It builds and starts PostgreSQL, the API, Liara documentation, and the ZarinPal dashboard:
-
-```bash
-docker compose up --build
-```
-
-Wait until the API is healthy, then open the frontend URLs from the table above. To run in the background and inspect status:
+## Run the complete local stack
 
 ```bash
+docker compose config --quiet
 docker compose up --build -d
 docker compose ps
-docker compose logs -f api
 ```
 
-Stop the stack without deleting database volumes:
+The one-shot `gateway-bootstrap` service initializes the enforcement policy before the gateway may
+become ready. Open:
+
+| Product or probe | URL                                      |
+| ---------------- | ---------------------------------------- |
+| Liara Docs       | <http://localhost:3001>                  |
+| Liara chat       | <http://localhost:3001/chat>             |
+| ZarinPal shell   | <http://localhost:3002>                  |
+| Gateway          | <http://localhost:4000>                  |
+| Liveness         | <http://localhost:4000/health/liveness>  |
+| Readiness        | <http://localhost:4000/health/readiness> |
+
+Inspect or stop the stack with:
 
 ```bash
+docker compose logs gateway-bootstrap gateway
 docker compose down
 ```
 
-## Run everything in development mode
-
-Use Docker only for PostgreSQL and run the applications with hot reload:
+If a default host port is occupied, set `AI_GATEWAY_PORT`, `REDIS_HOST_PORT`,
+`MOCK_UPSTREAM_HOST_PORT`, `LIARA_HOST_PORT`, or `ZARINPAL_HOST_PORT` in `.env`. For example:
 
 ```bash
-docker compose up -d postgres
-set -a
-source .env
-set +a
-export DUCKDB_PATH="$PWD/data/analytics.duckdb"
-export ZARINPAL_DATA_DIR="$PWD/data/zarinpal"
-pnpm --filter @hackathon/api db:migrate
-pnpm dev
+LIARA_HOST_PORT=3101 AI_GATEWAY_PORT=4100 docker compose up --build -d
 ```
 
-`source .env` is important: pnpm and Turborepo do not automatically export the root `.env` file into application processes. The two absolute path exports account for Turborepo running the API task from `apps/api`. The API also runs pending migrations at startup, so the explicit migration command is safe and useful for diagnosing database configuration.
+When the public gateway host port changes, set `NEXT_PUBLIC_AI_GATEWAY_URL` to the matching browser
+URL before building Liara (for the example above, `http://localhost:4100`).
 
-`pnpm dev` starts all three applications concurrently. Stop them with `Ctrl+C`; PostgreSQL continues running until `docker compose stop postgres` or `docker compose down` is used.
+## Run services natively
 
-## Run applications separately
-
-Start PostgreSQL first:
+Start only the deterministic dependencies:
 
 ```bash
-docker compose up -d postgres
+docker compose up -d redis mock-upstream
 ```
 
-Then use separate terminals from the repository root.
-
-Terminal 1 — API:
+In a gateway terminal, point the container-oriented fixture URLs at their published loopback ports,
+bootstrap once, and start FastAPI:
 
 ```bash
-set -a
-source .env
-set +a
-export DUCKDB_PATH="$PWD/data/analytics.duckdb"
-export ZARINPAL_DATA_DIR="$PWD/data/zarinpal"
-pnpm --filter @hackathon/api dev
+export AI_GATEWAY_MODEL_NAME=liara-docs
+export AI_GATEWAY_MODEL=fixture-provider-model
+export AI_GATEWAY_API_BASE=http://127.0.0.1:8080/v1
+export AI_GATEWAY_API_KEY=fixture-secret-not-for-production
+export AI_GATEWAY_REDIS_URL=redis://127.0.0.1:6389/0
+export AI_GATEWAY_DEPLOYMENT_ID=local-hackathon
+export AI_GATEWAY_ENFORCEMENT_EPOCH=local-v1
+export AI_GATEWAY_IDENTITY_SECRET=0123456789abcdef0123456789abcdef
+export AI_GATEWAY_MODEL_MAX_INPUT_TOKENS=8192
+export AI_GATEWAY_CORS_ALLOW_ORIGINS=http://localhost:3001
+export AI_GATEWAY_ALLOW_INSECURE_LOCAL_UPSTREAM=true
+export AI_GATEWAY_ALLOW_PRIVATE_UPSTREAM=true
+pnpm gateway:bootstrap
+pnpm dev:gateway
 ```
 
-Terminal 2 — Liara documentation:
+In separate frontend terminals:
 
 ```bash
-pnpm --filter @hackathon/liara-docs dev
-```
-
-Terminal 3 — ZarinPal dashboard:
-
-```bash
+NEXT_PUBLIC_AI_GATEWAY_URL=http://127.0.0.1:4000 pnpm --filter @hackathon/liara-docs dev
 pnpm --filter @hackathon/zarin-dashboard dev
 ```
 
-Both frontends default to `http://localhost:3000` for the API. To use another backend, export `NEXT_PUBLIC_API_URL` before starting or building the frontend:
+The public gateway URL is compiled into Liara's static build. Rebuild Liara when it changes.
+ZarinPal has no gateway environment variable or runtime dependency in this feature.
+
+## OpenAI-compatible smoke tests
 
 ```bash
-export NEXT_PUBLIC_API_URL=https://api.example.com
-pnpm --filter @hackathon/zarin-dashboard dev
+curl -fsS http://localhost:4000/health/liveness
+curl -fsS http://localhost:4000/health/readiness
+curl -fsS http://localhost:4000/v1/models
+
+curl -fsS http://localhost:4000/v1/chat/completions \
+  -H 'content-type: application/json' \
+  -d '{"model":"liara-docs","messages":[{"role":"user","content":"سلام"}]}'
+
+curl -N http://localhost:4000/v1/chat/completions \
+  -H 'content-type: application/json' \
+  -d '{"model":"liara-docs","messages":[{"role":"user","content":"سلام"}],"stream":true}'
 ```
 
-The frontend shells render without the API, but creating or restoring a conversation will fail until the API and PostgreSQL are ready.
+The stream must end with exactly one `data: [DONE]`. Requests work without Authorization; a
+non-secret placeholder Bearer header is tolerated for SDK compatibility.
 
-## Manual smoke test
-
-### 1. Verify API health
-
-```bash
-curl -i http://localhost:3000/api/health
-curl -i http://localhost:3000/api/health/live
-curl -i http://localhost:3000/api/health/ready
-```
-
-Expected results:
-
-- `/api/health` returns exactly `{"status":"ok"}`.
-- `/api/health/live` returns HTTP 200 while the process is alive.
-- `/api/health/ready` returns HTTP 200 only when PostgreSQL and DuckDB are ready; HTTP 503 identifies degraded storage.
-
-### 2. Test chat through both UIs
-
-1. Open <http://localhost:3001/chat> and send a Liara question.
-2. Confirm that the mock answer appears incrementally rather than all at once.
-3. Reload the page and confirm that conversation history returns.
-4. Open <http://localhost:3002> and repeat the test for ZarinPal.
-5. While a response is streaming, use the stop button and confirm that the UI reports the cancelled response safely.
-
-The first milestone intentionally uses a deterministic mock provider and requires no AI API key.
-
-### 3. Test the REST and SSE API directly
-
-The following example requires `jq`:
-
-```bash
-conversation=$(curl -fsS -X POST http://localhost:3000/api/v1/liara/conversations)
-conversation_id=$(printf '%s' "$conversation" | jq -r .conversationId)
-access_token=$(printf '%s' "$conversation" | jq -r .accessToken)
-
-curl -N \
-  -H "Authorization: Bearer $access_token" \
-  -H "Content-Type: application/json" \
-  -d '{"content":"چطور یک برنامه Node.js روی لیارا مستقر کنم؟"}' \
-  "http://localhost:3000/api/v1/liara/conversations/$conversation_id/messages"
-
-curl -fsS \
-  -H "Authorization: Bearer $access_token" \
-  "http://localhost:3000/api/v1/liara/conversations/$conversation_id" | jq
-```
-
-The streaming response should include `message.started`, multiple `message.delta` events, and `message.completed`. Product isolation can be checked with the same credentials; this request must return HTTP 404:
-
-```bash
-curl -i \
-  -H "Authorization: Bearer $access_token" \
-  "http://localhost:3000/api/v1/zarinpal/conversations/$conversation_id"
-```
-
-To verify persistence, send a message, restart only the API, then reload the frontend or repeat the conversation `GET` request.
-
-## Automated tests and quality checks
-
-Run the complete terminating check set before handing work to another teammate:
+## Build and test
 
 ```bash
 pnpm format:check
@@ -198,74 +139,91 @@ pnpm lint
 pnpm type-check
 pnpm test
 pnpm build
+pnpm test:e2e
 ```
 
-Run a check for one workspace while developing:
+Useful focused commands:
+
+| Concern           | Command                                                                                   |
+| ----------------- | ----------------------------------------------------------------------------------------- |
+| Node workspaces   | `pnpm build:node`, `pnpm lint:node`, `pnpm type-check:node`, `pnpm test:node`             |
+| FastAPI gateway   | `pnpm build:gateway`, `pnpm lint:gateway`, `pnpm type-check:gateway`, `pnpm test:gateway` |
+| Operations guards | `pnpm test:ops`                                                                           |
+| One frontend      | `pnpm --filter @hackathon/liara-docs build`                                               |
+
+Redis-backed gateway integration suites use the local Redis mapping:
 
 ```bash
-pnpm --filter @hackathon/api test
-pnpm --filter @hackathon/api type-check
-pnpm --filter @hackathon/contracts test
-pnpm --filter @hackathon/chat-ui type-check
-pnpm --filter @hackathon/liara-docs build
-pnpm --filter @hackathon/zarin-dashboard build
+TEST_REDIS_URL=redis://127.0.0.1:6389/0 uv --directory ai-gw run pytest \
+  tests/integration/test_rate_limiter_toctou.py \
+  tests/integration/test_multi_instance_atomicity.py \
+  tests/integration/test_reservation_reconciliation.py \
+  tests/integration/test_readiness_failure_modes.py -q
 ```
 
-Workspace command summary:
+## Independent deployment definitions
 
-| Task         | Entire repository   | One workspace example                            |
-| ------------ | ------------------- | ------------------------------------------------ |
-| Develop      | `pnpm dev`          | `pnpm --filter @hackathon/api dev`               |
-| Build        | `pnpm build`        | `pnpm --filter @hackathon/zarin-dashboard build` |
-| Test         | `pnpm test`         | `pnpm --filter @hackathon/contracts test`        |
-| Type-check   | `pnpm type-check`   | `pnpm --filter @hackathon/chat-ui type-check`    |
-| Lint         | `pnpm lint`         | `pnpm --filter @hackathon/api lint`              |
-| Format check | `pnpm format:check` | —                                                |
+- `deploy/compose.gateway.yaml` — Redis, one-shot bootstrap, and gateway only
+- `deploy/compose.liara.yaml` — Liara static frontend configured with the external gateway URL
+- `deploy/compose.zarin.yaml` — disconnected ZarinPal frontend only
 
-`pnpm release:check` intentionally fails while either frontend remains on unsupported Next.js 14. This is a deployment gate, not a failing local setup. Complete feature 005 before any public release.
-
-## Independent container definitions
-
-The files under `deploy/` build exactly one deployable and use the repository root as their build context:
-
-- `deploy/compose.liara.yaml`
-- `deploy/compose.zarin.yaml`
-- `deploy/compose.api.yaml`
-
-Example configuration validation:
+Validate the production gateway overlay by supplying every operator-owned value:
 
 ```bash
-NEXT_PUBLIC_API_URL=https://api.example.com \
-  docker compose -f deploy/compose.liara.yaml config
-
-NEXT_PUBLIC_API_URL=https://api.example.com \
-  docker compose -f deploy/compose.zarin.yaml config
-
-DATABASE_URL=postgres://user:password@database.example.com/app \
-CORS_ORIGINS=https://liara.example.com,https://zarin.example.com \
-  docker compose -f deploy/compose.api.yaml config
+AI_GATEWAY_MODEL_NAME=liara-docs \
+AI_GATEWAY_MODEL=provider-model \
+AI_GATEWAY_API_BASE=https://provider.example/v1 \
+AI_GATEWAY_API_KEY='provider-secret' \
+AI_GATEWAY_DEPLOYMENT_ID=production \
+AI_GATEWAY_ENFORCEMENT_EPOCH=policy-v1 \
+AI_GATEWAY_IDENTITY_SECRET='replace-with-32-or-more-random-bytes' \
+AI_GATEWAY_MODEL_MAX_INPUT_TOKENS=8192 \
+AI_GATEWAY_CORS_ALLOW_ORIGINS=https://docs.example.com \
+AI_GATEWAY_TRUSTED_PROXY_CIDRS=10.0.0.0/8 \
+docker compose -f deploy/compose.gateway.yaml config --quiet
 ```
 
-## Liara upstream updates
+Run `gateway-bootstrap` once for each changed enforcement policy before starting gateway instances.
+Provider availability is deliberately excluded from readiness; Redis or marker failure makes
+readiness return 503 and admissions fail closed.
 
-The snapshot source and exact commit are recorded in [`docs/architecture/liara-upstream.md`](docs/architecture/liara-upstream.md). Update it from a clean tree with:
+For an actual deployment, keep the same values in a protected file outside the repository and run:
 
 ```bash
-git subtree pull --prefix=apps/liara-docs https://github.com/liara-cloud/docs.git master --squash
+docker compose --env-file /secure/path/gateway.env \
+  -f deploy/compose.gateway.yaml up --build -d
+
+NEXT_PUBLIC_AI_GATEWAY_URL=https://gateway.example.com \
+  docker compose -f deploy/compose.liara.yaml up --build -d
+
+docker compose -f deploy/compose.zarin.yaml up --build -d
 ```
 
-Reapply only documented workspace integration changes, run all root checks, and update the recorded commit.
+The Liara URL is a build-time value and must be reachable by visitors' browsers. The ZarinPal
+overlay accepts no gateway URL and starts independently.
 
 ## Troubleshooting
 
-- **Chat returns 503:** confirm `docker compose ps postgres`, export `.env`, and restart the API. Check `/api/health/ready` for the failing storage dependency.
-- **`DATABASE_URL is required`:** run `set -a; source .env; set +a` in the terminal executing API or migration commands.
-- **PostgreSQL port 5432 is already in use:** keep the existing database and start Compose with `sudo env POSTGRES_HOST_PORT=5433 docker compose up --build`. For native API development, also set `DATABASE_URL=postgres://hackathon:hackathon@localhost:5433/hackathon`.
-- **Another port is already in use:** ports 3000, 3001, and 3002 must be available, or the relevant Compose mapping must be changed.
-- **Liara model fetch is unavailable:** the build uses the committed model snapshot and continues without network access.
-- **Search is unavailable:** Meilisearch is optional for this baseline; missing search credentials must not block documentation rendering.
-- **DuckDB native module fails to load:** use a supported x64/arm64 Linux, macOS, or Windows environment, reinstall dependencies for the current platform, or run the API container.
-- **Stale dependencies:** confirm the Node and pnpm versions, then run `pnpm install --frozen-lockfile` again.
-- **Docker API permission denied:** ensure the Docker daemon is running and that your user can access it, then verify with `docker info`.
+- **Gateway never becomes ready:** inspect `docker compose logs gateway-bootstrap gateway`; verify
+  Redis is healthy and the bootstrap and gateway environment fingerprints are identical.
+- **Readiness became 503 after Redis recovery:** rerun `docker compose run --rm gateway-bootstrap`,
+  then restart the gateway.
+- **Completion returns 502/504 while readiness is 200:** readiness does not probe the provider.
+  Check the provider URL/key and sanitized gateway request ID.
+- **Browser CORS failure:** add the exact Liara scheme/host/port to
+  `AI_GATEWAY_CORS_ALLOW_ORIGINS`; wildcard origins are rejected.
+- **Port conflict:** use the host-port variables listed above; Redis defaults to 6389, not 6379.
+- **Docker permission denied:** verify the daemon and your user's Docker access with `docker info`.
+- **Toolchain mismatch:** use `.tool-versions`, `.nvmrc`, and `.python-version`, then rerun
+  `pnpm check:toolchain`.
 
-Never commit `.env`, raw ZarinPal datasets, PostgreSQL volumes, DuckDB database files, or secrets.
+## Release block
+
+`pnpm release:check` is expected to fail while either frontend remains on unsupported Next.js 14.
+This repository may be exercised locally, but no public deployment or hackathon submission is
+permitted until the dedicated supported-version feature passes.
+
+Liara upstream provenance and update instructions remain in
+[`docs/architecture/liara-upstream.md`](docs/architecture/liara-upstream.md). Gateway import
+provenance and operator boundaries are in
+[`docs/architecture/ai-gateway-upstream.md`](docs/architecture/ai-gateway-upstream.md).

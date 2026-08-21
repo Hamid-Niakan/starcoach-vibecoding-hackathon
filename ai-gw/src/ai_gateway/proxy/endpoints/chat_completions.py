@@ -18,9 +18,11 @@ router = APIRouter(tags=["chat"])
     operation_id="createChatCompletion",
     summary="Create a chat completion",
     description=(
-        "The model must match the single listed public alias. The gateway accepts no credential and executes no "
-        "tools. Set stream=true to receive raw server-sent events; Swagger may buffer them, so streaming clients "
-        "should consume the response directly. Anonymous Redis-backed rate, token, concurrency, and quota limits apply."
+        "The model must match the single listed public alias. The gateway requires no credential; clients that need "
+        "OpenAI SDK parity may send a non-secret placeholder Bearer value, which is ignored and never forwarded. The "
+        "gateway executes no tools. Set stream=true to receive raw server-sent events; Swagger may buffer them, so "
+        "streaming clients should consume the response directly. Anonymous Redis-backed rate, token, concurrency, "
+        "and quota limits apply."
     ),
     response_model=ModelResponse,
     responses={

@@ -4,7 +4,10 @@ node_modules/
 .next/
 out/
 dist/
+build/
 coverage/
+test-results/
+playwright-report/
 *.log
 .env
 .env.*
@@ -15,10 +18,12 @@ data/zarinpal/*
 !data/zarinpal/README.md
 !data/zarinpal/metadata.example.json
 .DS_Store
+Thumbs.db
 .idea/
 .vscode/
 __pycache__/
 *.pyc
+*.egg-info/
 .venv/
 venv/
 *.tmp

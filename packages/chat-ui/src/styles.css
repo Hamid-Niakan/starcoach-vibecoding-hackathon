@@ -67,9 +67,12 @@
   margin: 0.25rem 0;
 }
 .hackathon-chat__message pre,
-.hackathon-chat__message code {
+.hackathon-chat__message code,
+.hackathon-chat__message a {
   direction: ltr;
   text-align: left;
+  unicode-bidi: isolate;
+  overflow-wrap: anywhere;
 }
 .hackathon-chat__message--user {
   align-self: flex-start;
@@ -87,6 +90,30 @@
   color: #991b1b;
   padding: 0.65rem 0.8rem;
   font-size: 0.85rem;
+}
+.hackathon-chat__message[data-status="streaming"] {
+  border-color: color-mix(in srgb, var(--chat-accent) 35%, #e5e7eb);
+}
+.hackathon-chat__message[data-status="stopped"] {
+  border-style: dashed;
+}
+.hackathon-chat__message[data-status="failed"] {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+.hackathon-chat__message small {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #6b7280;
+}
+.hackathon-chat__retry {
+  margin-inline-start: 0.65rem;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--chat-accent);
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
 }
 .hackathon-chat__composer {
   display: flex;
@@ -106,7 +133,13 @@
   padding: 0.75rem;
   outline: none;
 }
-.hackathon-chat__composer textarea:focus {
+.hackathon-chat__composer textarea:focus-visible,
+.hackathon-chat__composer button:focus-visible,
+.hackathon-chat__retry:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--chat-accent) 45%, transparent);
+  outline-offset: 2px;
+}
+.hackathon-chat__composer textarea:focus-visible {
   border-color: var(--chat-accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--chat-accent) 18%, transparent);
 }
@@ -143,5 +176,14 @@
   }
   .hackathon-chat__message {
     max-width: 92%;
+  }
+  .hackathon-chat__header {
+    padding: 0.85rem 1rem;
+  }
+  .hackathon-chat__messages {
+    padding: 1rem;
+  }
+  .hackathon-chat__composer {
+    padding: 0.75rem;
   }
 }
