@@ -67,3 +67,13 @@ def test_remote_media_and_conflicting_token_caps_are_rejected() -> None:
 def test_usage_uses_openai_names() -> None:
     usage = Usage(prompt_tokens=3, completion_tokens=4, total_tokens=7)
     assert usage.model_dump() == {"prompt_tokens": 3, "completion_tokens": 4, "total_tokens": 7}
+
+
+def test_usage_allows_provider_specific_token_breakdowns() -> None:
+    usage = Usage(
+        prompt_tokens=3,
+        completion_tokens=4,
+        total_tokens=7,
+        completion_tokens_details={"reasoning_tokens": 0},
+    )
+    assert usage.model_dump()["completion_tokens_details"] == {"reasoning_tokens": 0}
