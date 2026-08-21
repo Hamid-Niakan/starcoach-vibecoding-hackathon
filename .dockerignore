@@ -16,3 +16,8 @@ coverage
 data/zarinpal/*
 *.duckdb*
 *.log
+__pycache__
+**/__pycache__
+*.pyc
+.venv
+**/.venv

@@ -17,3 +17,9 @@ data/zarinpal/*
 .DS_Store
 .idea/
 .vscode/
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.tmp
+*.swp
