@@ -226,7 +226,10 @@ def _validate_function_choice(value: str | dict[str, Any]) -> None:
 
 
 class Usage(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    # OpenAI-compatible providers may add usage breakdowns (for example,
+    # RAGFlow's `completion_tokens_details`).  Keep the accounting fields
+    # required by the gateway while allowing those provider extensions.
+    model_config = ConfigDict(extra="allow")
     prompt_tokens: int = Field(ge=0)
     completion_tokens: int = Field(ge=0)
     total_tokens: int = Field(ge=0)
